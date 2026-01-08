@@ -1,0 +1,33 @@
+# ===== Visual Studio =====
+.vs/
+
+# ===== Build results =====
+Debug/
+Release/
+x64/
+x86/
+bin/
+obj/
+out/
+build/
+
+# ===== C++ compiled files =====
+*.exe
+*.dll
+*.lib
+*.obj
+*.pdb
+*.ilk
+*.exp
+
+# ===== CMake =====
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# ===== Logs & OS =====
+*.log
+*.tmp
+Thumbs.db
+.DS_Store
