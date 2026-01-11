@@ -20,7 +20,11 @@ Game::Game(RenderWindow* window)
 		MessageBoxA(nullptr, "Nie zaladowano dzwieku smierci", "BLAD", MB_OK);
 	deathSound.setBuffer(deathBuffer);
 	
-
+	//background
+	if (!backgroundTexture.loadFromFile("Textures/background.png"))
+	{
+		MessageBoxA(nullptr, "Nie zaladowano tekstury t³a", "BLAD", MB_OK);
+	}
 	
 	
 	//init textures
@@ -33,28 +37,50 @@ Game::Game(RenderWindow* window)
 	this->fireTexture.loadFromFile("Textures/bullet/fire_prev.png");
 	this->feather_missileTexture.loadFromFile("Textures/bullet/feather_missile.png");
 
-	this->enemy01Texture.loadFromFile("Textures/enemies/harpy2.png");
+	this->enemy01Texture.loadFromFile("Textures/enemies/Harpy.png");
+	this->enemyRavenTexture.loadFromFile("Textures/enemies/raven.png");
+	this->enemyArgusTexture.loadFromFile("Textures/enemies/argus.png");
+
+	
+	
+	backgroundSprite.setTexture(backgroundTexture);
+
+	Vector2u windowSize = window->getSize();
+	Vector2u texSize = backgroundTexture.getSize();
+
+	backgroundSprite.setScale(
+		float(windowSize.x) / texSize.x,
+		float(windowSize.y) / texSize.y
+	);
+	
+	
+	
+	
+	
 	
 	//init player
 	player = new Player(&this->playerTexture, &fireTexture);
 	//this->players.push_back(Player(&playerTexture, &fireTexture));
 
-	Enemy e1(
+	/*this->enemiesSaved.emplace_back(
 		&this->enemy01Texture,
 		this->window->getSize(),
-		/*Vector2f(
-			static_cast<float>(rand() % this->window->getSize().x),
-			0.f),*/ //pozycja starowa
-		
-		Vector2f(0.f, 0.f),
-		
-		Vector2f(0.f, 1.f),  //predkosc
-		Vector2f(0.1f, 0.1f), //skala
-		0, 1, 3, 1
-	);
-	this->enemiesSaved.push_back(Enemy(e1));
+		Vector2f(0.f, 0.f),             // pozycja startowa
+		Vector2f(0.f, 1.f),             // kierunek
+		Vector2f(0.1f, 0.1f),           // skala
+		Enemy::EnemyType::Harpy,                    // typ przeciwnika
+		&feather_missileTexture,
+		1,                               // hpMax
+		3,                               // damageMax
+		1                                // damageMin
+	);*/
+	enemiesSaved.push_back(Enemy(&enemy01Texture, window->getSize(),
+		Vector2f(0.f, 0.f), Vector2f(0.f, 1.f),
+		Vector2f(0.1f, 0.1f),
+		Enemy::EnemyType::Harpy,
+		&feather_missileTexture));
 
-	this->enemySpawnTimerMax = 20;
+	this->enemySpawnTimerMax = 150;
 	this->enemySpawnTimer = this->enemySpawnTimerMax;
 
 
@@ -142,6 +168,61 @@ void Game::CheckPlayerEnemyCollision()
 		}
 	}
 }
+void Game::CheckEnemyFiresCollision()
+{
+	for (auto& e : enemies) // dla ka¿dego wroga
+	{
+		auto& enemyFires = e.getFires();
+		for (size_t i = 0; i < enemyFires.size(); )
+		{
+			if (player->getGlobalBounds().intersects(enemyFires[i].getGlobalBounds()))
+			{
+				// Gracz dostaje obra¿enia
+				player->takeDamage(enemyFires[i].getDamage());
+
+				// Usuñ pocisk
+				enemyFires.erase(enemyFires.begin() + i);
+			}
+			else
+			{
+				i++;
+			}
+		}
+	}
+}
+void Game::CheckProjectileCollisions()
+{
+	auto& playerFires = player->getFires();
+
+	for (auto& e : enemies)
+	{
+		auto& enemyFires = e.getFires();
+
+		for (size_t i = 0; i < playerFires.size(); )
+		{
+			bool destroyed = false;
+
+			for (size_t j = 0; j < enemyFires.size() && !destroyed; )
+			{
+				if (playerFires[i].getGlobalBounds().intersects(enemyFires[j].getGlobalBounds()))
+				{
+					// oba pociski zniszczone
+					playerFires.erase(playerFires.begin() + i);
+					enemyFires.erase(enemyFires.begin() + j);
+					destroyed = true;
+				}
+				else
+				{
+					j++;
+				}
+			}
+
+			if (!destroyed)
+				i++;
+		}
+	}
+}
+
 
 
 void Game::Update()
@@ -159,21 +240,32 @@ void Game::Update()
 	
 	//player enemy collision
 	this->CheckPlayerEnemyCollision();
-
+	this->CheckEnemyFiresCollision();
+	this->CheckProjectileCollisions();
 	//Enemies update??
 	
 	for (size_t i = 0; i < enemies.size();)
 	{
-		this->enemies[i].Update();
-		if (this->enemies[i].getPosition().y > this->window->getSize().y)
+		// Aktualizacja pozycji wroga (Harpy, Raven, Argus)
+		enemies[i].Update(player->getPosition());
+
+		// Aktualizacja pocisków wroga
+		auto& enemyFires = enemies[i].getFires();
+		for (size_t j = 0; j < enemyFires.size(); )
 		{
-			this->enemies.erase(this->enemies.begin() + i);
-		}
-		else
-		{
-			i++;
+			enemyFires[j].update(); // ruch pocisku
+			// usuñ pocisk, jeœli poza ekranem
+			if (enemyFires[j].getPosition().y > window->getSize().y)
+				enemyFires.erase(enemyFires.begin() + j);
+			else
+				++j;
 		}
 
+		// Usuñ wroga, jeœli wyszed³ poza ekran
+		if (enemies[i].getPosition().y > window->getSize().y)
+			enemies.erase(enemies.begin() + i);
+		else
+			++i;
 	}
 	//Update timers
 	if (this->enemySpawnTimer < this->enemySpawnTimerMax)
@@ -183,13 +275,68 @@ void Game::Update()
 
 	if (this->enemySpawnTimer >= this->enemySpawnTimerMax)
 	{
-		this->enemies.push_back(Enemy(
-			&this->enemy01Texture,
-			this->window->getSize(),
-			Vector2f(static_cast<float>(rand() % this->window->getSize().x), 0.f),
-			Vector2f(0.f, 1.f),  //predkosc
-			Vector2f(0.1f, 0.1f), //skala
-			0, rand() % 3 + 1, 3, 1));
+		// Losujemy typ wroga
+		Enemy::EnemyType type;
+		int r = rand() % 3; // 0=Harpy, 1=Raven, 2=Argus
+		switch (r)
+		{
+		case 0: type = Enemy::EnemyType::Harpy; break;
+		case 1: type = Enemy::EnemyType::Raven; break;
+		case 2: type = Enemy::EnemyType::Argus; break;
+		}
+
+	
+		
+	
+
+
+		Texture* tex = nullptr;
+		if (type == Enemy::EnemyType::Argus)
+			tex = &enemyArgusTexture;
+		else if (type == Enemy::EnemyType::Raven)
+			tex = &enemyRavenTexture;
+		else if (type == Enemy::EnemyType::Harpy)
+			tex = &enemy01Texture;
+		
+		if (!tex)
+			return; // lub continue w pêtli spawn
+
+		Vector2f spawnPos;
+		float halfWidth = tex->getSize().x * 0.1f / 2.f; // przeskalowana po³owa szerokoœci sprite
+		spawnPos.x = halfWidth + static_cast<float>(rand() % (window->getSize().x - static_cast<int>(halfWidth * 2)));
+		spawnPos.y = 0.f;
+		Vector2f dir(0.f, 1.f);
+
+		if (type == Enemy::EnemyType::Raven)
+		{
+			dir = player->getPosition() - spawnPos;
+			float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
+			if (len != 0.f) dir /= len;
+		}
+
+		Vector2f projectileScale(0.1f, 0.2f); // np. pióro Harpy jest wê¿sze i d³u¿sze
+
+		Texture* texProjectile = nullptr;
+		Vector2f projectileSpeed(0.f, 10.f); // prêdkoœæ pocisku w dó³
+		if (type == Enemy::EnemyType::Harpy)
+		{
+			texProjectile = &feather_missileTexture;
+			projectileScale = Vector2f(0.05f, 0.2f);
+			projectileSpeed = Vector2f(0.f, 5.f);
+		}
+		else
+			texProjectile = nullptr;
+
+		this->enemies.emplace_back(
+			tex,                   // tekstura wroga
+			window->getSize(),     // bounds
+			spawnPos,              // pozycja startowa
+			dir,                   // kierunek
+			Vector2f(0.1f, 0.1f), // skala
+			type,                  // typ
+			texProjectile,         // tekstura pocisku
+			2, 3, 1                // hpMax, damageMax, damageMin
+		);
 
 		this->enemySpawnTimer = 0;
 	}
@@ -232,10 +379,19 @@ void Game::DrawUI()
 void Game::Draw()
 {
 	window->clear();
+	
+	window->draw(backgroundSprite);
+
 	player->Draw(*window);
 	
 	for (auto& e : enemies)
+	{
 		e.Draw(*window);
+
+		// rysowanie pocisków wroga
+		for (auto& f : e.getFires())
+			f.draw(*window);
+	}
 
 	this->DrawUI();//rysowanie tekstu
 

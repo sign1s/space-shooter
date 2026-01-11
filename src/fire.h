@@ -17,9 +17,9 @@ private:
 	int damage;
 
 public:
-	Fire(Texture* texture, Vector2f position, Vector2f maxVelocity = Vector2f(0.f, -10.f));
+	Fire(Texture* texture, Vector2f position, Vector2f maxVelocity = Vector2f(0.f, -10.f), Vector2f scale = Vector2f(0.15f, 0.15f));
 	//virtual ~Fire();
-
+	
 
 
 	//Accessors

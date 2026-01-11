@@ -12,6 +12,10 @@ class Game
 private:
 	RenderWindow* window;
 
+	//background
+	Texture backgroundTexture;
+	Sprite backgroundSprite;
+
 	//Text
 	Font font;
 	Text staticPlayerText;
@@ -40,6 +44,8 @@ private:
 	//tekstury przeciwnikow
 	//std::vector<Texture> enemyTextures;
 	Texture enemy01Texture;
+	Texture enemyRavenTexture;
+	Texture enemyArgusTexture;
 
 	
 public:
@@ -52,6 +58,8 @@ public:
 	
 	//player enemy collision
 	void CheckPlayerEnemyCollision();
+	void CheckEnemyFiresCollision();
+	void CheckProjectileCollisions();
 	
 	//Accessors
 	inline RenderWindow& getWindow()
