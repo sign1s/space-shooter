@@ -37,6 +37,7 @@ private:
 	float shootTimerMax = 60.f;     // strza³ co 60 klatek (1 sekunda przy 60 FPS)
 	float stopY = 0.f;              // wysokoœæ, na której Harpy przestaje lecieæ w dó³
 
+	bool reachedStopY = false;
 
 	std::vector<Fire> fires;  // pociski wroga
 public:

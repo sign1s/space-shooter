@@ -27,6 +27,11 @@ Enemy::Enemy(Texture* texture, Vector2u windowBounds,
     this->scale = scale;
     this->sprite.setScale(this->scale);
 
+    this->startX = position.x;
+    this->stopY = windowBounds.y * 0.6f;  // wysokoœæ, na której Harpia "zawisa"
+
+
+
     // Statystyki domyœlne w zale¿noœci od typu
     switch (type)
     {
@@ -83,12 +88,28 @@ void Enemy::Update(const sf::Vector2f& playerPos)
     if (type == EnemyType::Harpy)
     {
         // Zatrzymaj siê na 60% wysokoœci ekranu
-        if (sprite.getPosition().y < stopY)
+        if (!reachedStopY)
         {
             sprite.move(0.f, speed);
+
+            if (sprite.getPosition().y >= stopY)
+            {
+                reachedStopY = true;
+                startX = sprite.getPosition().x; // wa¿ne
+                elapsedTime = 0.f;               // reset sinusa
+            }
         }
         else
         {
+            this->elapsedTime += 1.f / 60.f;
+            float xOffset = std::sin(this->elapsedTime * 0.8f) * 40.f;
+            float yOffset = std::cos(this->elapsedTime * 1.5f) * 20.f;
+
+            this->sprite.setPosition(
+                this->startX + xOffset,
+                this->stopY + yOffset
+            );
+
             // Liczymy czas do strza³u
             shootTimer++;
             if (shootTimer >= shootTimerMax)
