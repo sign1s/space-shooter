@@ -1,15 +1,28 @@
 #include "Game.h"
 #include<iostream>
 #include <Windows.h>
+//#include <SFML/Audio.hpp>
 #include <filesystem>
 Game::Game(RenderWindow* window)
 {
 	this->window = window;
 	this->window->setFramerateLimit(60);
 
+	//gameover
+	this->gameOver = false;
+
 	//init fonts
 	this->font.loadFromFile("Assets/TrovicalCalmFreeItalic-aYAZx.otf");
 
+	//init sounds
+	
+	if (!deathBuffer.loadFromFile("Sounds/death.wav"))
+		MessageBoxA(nullptr, "Nie zaladowano dzwieku smierci", "BLAD", MB_OK);
+	deathSound.setBuffer(deathBuffer);
+	
+
+	
+	
 	//init textures
 	//this->playerTexture.loadFromFile("Textures/player/Green_Dragon_overhead.png");
 	if (!this->playerTexture.loadFromFile("Textures/player/Green_Dragon_overhead.png"))
@@ -37,7 +50,7 @@ Game::Game(RenderWindow* window)
 		
 		Vector2f(0.f, 1.f),  //predkosc
 		Vector2f(0.1f, 0.1f), //skala
-		0, rand() % 3 + 1, 3, 1
+		0, 1, 3, 1
 	);
 	this->enemiesSaved.push_back(Enemy(e1));
 
@@ -111,14 +124,41 @@ void Game::CombatUpdate()
 
 
 }
+void Game::CheckPlayerEnemyCollision()
+{
+	for (size_t i = 0; i < enemies.size(); )
+	{
+		if (player->getGlobalBounds().intersects(enemies[i].getGlobalBounds()))
+		{
+			// gracz dostaje obra¿enia
+			player->takeDamage(1);
+
+			// wróg znika po zderzeniu
+			enemies.erase(enemies.begin() + i);
+		}
+		else
+		{
+			i++;
+		}
+	}
+}
+
 
 void Game::Update()
 {
+	//gameover
+	if (player->getHP() <= 0 && !gameOver)
+	{
+		this->gameOver = true;
+		deathSound.play();
+	}
+	if (this->gameOver)
+		return; // 
 	//collision
-	
 	this->CombatUpdate();
-
-
+	
+	//player enemy collision
+	this->CheckPlayerEnemyCollision();
 
 	//Enemies update??
 	
@@ -155,6 +195,7 @@ void Game::Update()
 	}
 
 
+	
 
 
 	//update players
