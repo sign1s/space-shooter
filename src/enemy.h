@@ -1,9 +1,13 @@
 #pragma once
 
 #include"fire.h"
-
 class Enemy
 {
+	enum class EnemyType
+	{
+		Harpy,
+		Raven
+};
 private:
 	Texture* texture;
 	Sprite sprite;

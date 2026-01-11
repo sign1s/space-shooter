@@ -2,6 +2,7 @@
 
 #include "player.h"
 #include "enemy.h"
+#include <SFML/Audio.hpp>
 
 using namespace sf;
 
@@ -15,11 +16,20 @@ private:
 	Font font;
 	Text staticPlayerText;
 
+	//gameover
+	bool gameOver;
+	//sounds
+	
+	sf::SoundBuffer deathBuffer;
+	sf::Sound deathSound;
+	
+	
 
+	
 	//std::vector<Player> players;
 	Player* player;
 	Texture playerTexture;
-
+	
 	//przeciwnicy
 	std::vector<Enemy> enemies;
 	std::vector<Enemy> enemiesSaved;
@@ -40,9 +50,8 @@ public:
 	Texture fireTexture;
 	Texture feather_missileTexture;
 	
-
-
-
+	//player enemy collision
+	void CheckPlayerEnemyCollision();
 	
 	//Accessors
 	inline RenderWindow& getWindow()

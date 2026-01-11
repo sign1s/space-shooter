@@ -16,7 +16,7 @@ int main()
 {
     //std::cout << std::filesystem::current_path() << std::endl;
     //system("pause");
-    RenderWindow window(VideoMode({ 1500,750 }), "dragon shooter!");
+    RenderWindow window(VideoMode({ 1000,1000 }), "dragon shooter!");
 
     Game game(&window);
 
