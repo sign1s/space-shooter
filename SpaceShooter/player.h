@@ -29,7 +29,7 @@ private:
 	sf::SoundBuffer dragonHitBuffer;
 	sf::Sound dragonHitSound;
 
-	int controls[3];//left,right,shoot
+	int controls[5];//left,right,up,down,shoot
 
 	int level;
 	int exp;
@@ -41,6 +41,8 @@ private:
 	int damage;
 	int damageMax;
 
+	int gold;
+
 	int score;
 
 public:
@@ -49,6 +51,8 @@ public:
 		Vector2u windowBounds,
 		int RIGHT = Keyboard::Right,
 		int LEFT = Keyboard::Left,
+		int UP = Keyboard::Up,
+		int DOWN = Keyboard::Down,
 		int SHOOT = Keyboard::Space);//i shoot
 	virtual ~Player();
 
@@ -57,6 +61,10 @@ public:
 	inline std::vector<Fire>& getFires() { return this->fires; }
 	inline Vector2f getPosition()const { return this->sprite.getPosition(); }
 	inline const String getHPasString()const { return std::to_string(this->hp) + "/" + std::to_string(this->hpMax); }
+	inline const String getLVLasString()const { return std::to_string(this->level); }
+	inline const String getEXPasString()const { return std::to_string(this->exp) + "/" + std::to_string(this->expNext); }
+	inline const String getGOLDasString()const { return std::to_string(this->gold); }
+	inline const String getSCOREasString()const { return std::to_string(this->score); }
 	sf::FloatRect getGlobalBounds() const;//cos do hitboxow
 	//Functions
 	void Movement();
@@ -65,7 +73,11 @@ public:
 	void Draw(RenderTarget& target);
 	void takeDamage(int damage);
 	int getHP() const;
-
+	void addScore(int value);
+	void addEXP();
+	int getEXP() const;
+	int getEXPnext() const;
+	void levelUP();
 
 
 };

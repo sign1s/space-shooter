@@ -99,16 +99,39 @@ void Game::InitUI()
 	Text tempText;
 	tempText.setFont(font);
 	tempText.setCharacterSize(40);
-	tempText.setFillColor(Color::White);
-	tempText.setString("HP ");
+	tempText.setFillColor(Color(64, 191, 222));
+	tempText.setString("HP   ");
+	this->hpText = tempText;
 
-	this->staticPlayerText = tempText;
+	tempText.setString("LVL   ");
+	this->lvlText = tempText;
+
+	tempText.setString("EXP   ");
+	this->expText = tempText;
+
+	tempText.setString("GOLD   ");
+	this->goldText = tempText;
+
+	tempText.setString("SCORE   ");
+	this->scoreText = tempText;
 }
 
 void Game::UpdateUI()
 {
-	this->staticPlayerText.setPosition(Vector2f(10.0f, 10.0f));
-	this->staticPlayerText.setString("HP " + this->player->getHPasString());
+	this->hpText.setPosition(Vector2f(10.0f, 10.0f));
+	this->hpText.setString("HP   " + this->player->getHPasString());
+
+	this->lvlText.setPosition(Vector2f(10.0f, 90.0f));
+	this->lvlText.setString("LVL   " + this->player->getLVLasString());
+
+	this->expText.setPosition(Vector2f(10.0f, 130.0f));
+	this->expText.setString("EXP   " + this->player->getEXPasString());
+
+	this->goldText.setPosition(Vector2f(10.0f, 210.0f));
+	this->goldText.setString("GOLD   " + this->player->getGOLDasString());
+
+	this->scoreText.setPosition(Vector2f(10.0f, 250.0f));
+	this->scoreText.setString("SCORE   " + this->player->getSCOREasString());
 }
 
 void Game::CombatUpdate()
@@ -134,7 +157,13 @@ void Game::CombatUpdate()
 
 					// jeœli wróg martwy
 					if (enemies[j].getHP() <= 0)
+					{
 						enemies.erase(enemies.begin() + j);
+						player->addScore(10);
+						player->addEXP();
+						if (player->getEXP() == player->getEXPnext())
+							player->levelUP();
+					}
 					else
 						j++;
 				}
@@ -373,7 +402,11 @@ void Game::Update()
 
 void Game::DrawUI()
 {
-	this->window->draw(this->staticPlayerText);
+	this->window->draw(this->hpText);
+	this->window->draw(this->lvlText);
+	this->window->draw(this->expText);
+	this->window->draw(this->goldText);
+	this->window->draw(this->scoreText);
 }
 
 void Game::Draw()

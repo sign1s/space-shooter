@@ -3,14 +3,14 @@
 #include <SFML/Audio.hpp>
 #include <Windows.h>
 
-enum controls { RIGHT = 0, LEFT, SHOOT }; //Space
+enum controls { RIGHT = 0, LEFT, UP, DOWN, SHOOT }; //Space
 
 Player::Player(Texture* texture, Texture* fireTexture, //Texture* fireTexture
 	Vector2u windowBounds,
-	int RIGHT, int LEFT, int SHOOT)
+	int RIGHT, int LEFT, int UP, int DOWN, int SHOOT)
 	:level(1), exp(0), expNext(100),
 	hp(10), hpMax(10), damage(1), damageMax(2),
-	score(0) //initiation list
+	gold(0), score(0) //initiation list
 {
 	//Textures and Sprites
 	this->texture = texture;
@@ -34,6 +34,8 @@ Player::Player(Texture* texture, Texture* fireTexture, //Texture* fireTexture
 	//Controls
 	this->controls[controls::RIGHT] = RIGHT;
 	this->controls[controls::LEFT] = LEFT;
+	this->controls[controls::UP] = UP;
+	this->controls[controls::DOWN] = DOWN;
 	//SHOOT
 	this->controls[controls::SHOOT] = SHOOT;
 
@@ -51,6 +53,12 @@ void Player::Movement()
 
 	if (Keyboard::isKeyPressed(Keyboard::Key(this->controls[controls::LEFT])))
 		this->sprite.move(-10.0f, 0.0f);
+
+	if (Keyboard::isKeyPressed(Keyboard::Key(this->controls[controls::UP])))
+		this->sprite.move(0.0f, -10.0f);
+
+	if (Keyboard::isKeyPressed(Keyboard::Key(this->controls[controls::DOWN])))
+		this->sprite.move(0.0f, 10.0f);
 
 
 	//SHOOT //koles stworzyl tutaj osobna funkcje combat, na razie wydaje sie zbedna (04 - 18:42)
@@ -70,8 +78,15 @@ void Player::updateWindowBoundsCollision(Vector2u windowBounds)
 	//troche to zmienilam
 	if (this->sprite.getPosition().x < 0.f)
 		this->sprite.setPosition(0.f, this->sprite.getPosition().y);
+
 	else if (this->sprite.getPosition().x + this->sprite.getGlobalBounds().width > windowBounds.x)
 		this->sprite.setPosition(windowBounds.x - sprite.getGlobalBounds().width, this->sprite.getPosition().y);
+
+	else if (this->sprite.getPosition().y + 2 * this->sprite.getGlobalBounds().height > windowBounds.y)
+		this->sprite.setPosition(this->sprite.getPosition().x, windowBounds.y - 2 * sprite.getGlobalBounds().height);
+
+	else if (this->sprite.getPosition().y < 300.f)
+		this->sprite.setPosition(this->sprite.getPosition().x, 300.f);
 }
 //to
 void Player::takeDamage(int damage)
@@ -90,6 +105,37 @@ sf::FloatRect Player::getGlobalBounds() const
 int Player::getHP() const
 {
 	return this->hp;
+}
+
+void Player::addScore(int value)
+{
+	this->score += value;
+}
+
+void Player::addEXP()
+{
+	this->exp += 10;
+}
+
+int Player::getEXP() const
+{
+	return this->exp;
+}
+
+int Player::getEXPnext() const
+{
+	return this->expNext;
+}
+
+void Player::levelUP()
+{
+	level++;
+	expNext += 10;
+	exp = 0;
+	//damage++;
+	hpMax += 2;
+	hp = hpMax;
+
 }
 
 void Player::Update(Vector2u windowBounds) //Vector2u windowBounds

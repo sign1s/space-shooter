@@ -18,7 +18,11 @@ private:
 
 	//Text
 	Font font;
-	Text staticPlayerText;
+	Text hpText;
+	Text lvlText;
+	Text expText;
+	Text goldText;
+	Text scoreText;
 
 	//gameover
 	bool gameOver;
