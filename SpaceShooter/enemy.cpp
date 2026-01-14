@@ -1,6 +1,7 @@
 #include "enemy.h"
 #include <iostream> 
 #include <cmath>
+#include <time.h>
 enum eTypes { MOVELEFT = 0,FOLLOW, FOLLOWFAST, FOLLOWSHOOT, FOLLOWFASTSHOOT};
 
 Enemy::Enemy(Texture* texture, Vector2u windowBounds,
@@ -72,6 +73,7 @@ Enemy::~Enemy()
 
 }
 
+
 void Enemy::takeDamage(int damage)
 {
 	this->hp -= damage;
@@ -79,6 +81,7 @@ void Enemy::takeDamage(int damage)
 	if (this->hp <= 0)
 		this->hp = 0;
 }
+
 
 void Enemy::Update(const sf::Vector2f& playerPos)
 	// Wypisuj pozycjê co klatkê (tymczasowo)

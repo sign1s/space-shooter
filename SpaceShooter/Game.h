@@ -24,6 +24,12 @@ private:
 	Text goldText;
 	Text scoreText;
 
+	//bars
+	RectangleShape hpBar;
+	RectangleShape hpBarInside;
+	RectangleShape expBar;
+	RectangleShape expBarInside;
+
 	//gameover
 	bool gameOver;
 	//sounds
@@ -77,9 +83,14 @@ public:
 	}
 
 	//Funkcje
-	void InitUI();//UI jest od tekstow(czyli hp narazie) //user interface
+	//user interface
+	void InitUI(); //teksty
 	void UpdateUI();
 	void DrawUI();
+	void InitBars(); //barki
+	void updateBars();
+	void drawBars();
+
 	void CombatUpdate();
 	void Update();
 	void Draw();

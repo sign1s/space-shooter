@@ -36,14 +36,16 @@ private:
 	int expNext;
 
 	int hp;
-	int hpMax;
+	float hpMax;
 
 	int damage;
 	int damageMax;
 
-	int gold;
+	//int gold;
 
 	int score;
+
+	int levelBonus;//dodatkowe punkty do score z osiagnieciem nowego levelu
 
 public:
 
@@ -60,10 +62,10 @@ public:
 	//Accessors
 	inline std::vector<Fire>& getFires() { return this->fires; }
 	inline Vector2f getPosition()const { return this->sprite.getPosition(); }
-	inline const String getHPasString()const { return std::to_string(this->hp) + "/" + std::to_string(this->hpMax); }
+	inline const String getHPasString()const { return std::to_string(this->hp) + "/" + std::to_string(static_cast<int>(this->hpMax)); }
 	inline const String getLVLasString()const { return std::to_string(this->level); }
-	inline const String getEXPasString()const { return std::to_string(this->exp) + "/" + std::to_string(this->expNext); }
-	inline const String getGOLDasString()const { return std::to_string(this->gold); }
+	inline const String getEXPasString()const { return std::to_string(this->exp) + "/" + std::to_string(static_cast<int>(this->expNext)); }
+	//inline const String getGOLDasString()const { return std::to_string(this->gold); }
 	inline const String getSCOREasString()const { return std::to_string(this->score); }
 	sf::FloatRect getGlobalBounds() const;//cos do hitboxow
 	//Functions
@@ -73,10 +75,13 @@ public:
 	void Draw(RenderTarget& target);
 	void takeDamage(int damage);
 	int getHP() const;
+	float getHPmax() const;
 	void addScore(int value);
-	void addEXP();
+	void addEXP(int value);
 	int getEXP() const;
-	int getEXPnext() const;
+	float getEXPnext() const;
+	int getlevelBonus() const;
+	//int addGold(); //niewiadomo jeszcze czy bedzie zloto
 	void levelUP();
 
 

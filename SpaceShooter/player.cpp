@@ -8,9 +8,9 @@ enum controls { RIGHT = 0, LEFT, UP, DOWN, SHOOT }; //Space
 Player::Player(Texture* texture, Texture* fireTexture, //Texture* fireTexture
 	Vector2u windowBounds,
 	int RIGHT, int LEFT, int UP, int DOWN, int SHOOT)
-	:level(1), exp(0), expNext(100),
+	:level(1), exp(0), expNext(60),
 	hp(10), hpMax(10), damage(1), damageMax(2),
-	gold(0), score(0) //initiation list
+	score(0), levelBonus(10) //initiation list
 {
 	//Textures and Sprites
 	this->texture = texture;
@@ -107,14 +107,19 @@ int Player::getHP() const
 	return this->hp;
 }
 
+float Player::getHPmax() const
+{
+	return this->hpMax;
+}
+
 void Player::addScore(int value)
 {
 	this->score += value;
 }
 
-void Player::addEXP()
+void Player::addEXP(int value)
 {
-	this->exp += 10;
+	this->exp += value;
 }
 
 int Player::getEXP() const
@@ -122,20 +127,25 @@ int Player::getEXP() const
 	return this->exp;
 }
 
-int Player::getEXPnext() const
+float Player::getEXPnext() const
 {
 	return this->expNext;
+}
+
+int Player::getlevelBonus() const
+{
+	return this->levelBonus;
 }
 
 void Player::levelUP()
 {
 	level++;
-	expNext += 10;
+	expNext += 20;
 	exp = 0;
-	//damage++;
+	damage++;
 	hpMax += 2;
 	hp = hpMax;
-
+	levelBonus += 10;
 }
 
 void Player::Update(Vector2u windowBounds) //Vector2u windowBounds

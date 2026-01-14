@@ -57,6 +57,7 @@ public:
 	inline const bool isDead()const { return this->hp <= 0; }
 	inline const FloatRect getGlobalBounds()const { return this->sprite.getGlobalBounds(); }
 	inline const Vector2f getPosition()const { return this->sprite.getPosition(); }
+	EnemyType getEnemyType() const { return this->type; };
 
 	std::vector<Fire>& getFires() { return fires; }
 	//funkcje

@@ -78,13 +78,14 @@ Game::Game(RenderWindow* window)
 		Vector2f(0.f, 0.f), Vector2f(0.f, 1.f),
 		Vector2f(0.1f, 0.1f),
 		Enemy::EnemyType::Harpy,
-		&feather_missileTexture));
+		&feather_missileTexture)); 
 
 	this->enemySpawnTimerMax = 150;
 	this->enemySpawnTimer = this->enemySpawnTimerMax;
 
 
 	this->InitUI();
+	this->InitBars();
 }
 
 Game::~Game()
@@ -96,43 +97,78 @@ Game::~Game()
 //inicjalizuje texts
 void Game::InitUI()
 {
-	Text tempText;
-	tempText.setFont(font);
-	tempText.setCharacterSize(40);
-	tempText.setFillColor(Color(64, 191, 222));
-	tempText.setString("HP   ");
-	this->hpText = tempText;
+	Text tempTextbig;
+	tempTextbig.setFont(font);
+	tempTextbig.setCharacterSize(40);
+	tempTextbig.setFillColor(Color(15, 207, 255));
 
-	tempText.setString("LVL   ");
-	this->lvlText = tempText;
+	Text tempTextsmall;
+	tempTextsmall.setFont(font);
+	tempTextsmall.setCharacterSize(20);
+	tempTextsmall.setFillColor(Color(15, 207, 255));
 
-	tempText.setString("EXP   ");
-	this->expText = tempText;
+	tempTextbig.setString("HP   ");
+	this->hpText = tempTextbig;
 
-	tempText.setString("GOLD   ");
-	this->goldText = tempText;
+	tempTextbig.setString("LVL   ");
+	this->lvlText = tempTextbig;
 
-	tempText.setString("SCORE   ");
-	this->scoreText = tempText;
+	tempTextsmall.setString("   ");
+	this->expText = tempTextsmall;
+
+	//tempText.setString("GOLD   ");
+	//this->goldText = tempText;
+
+	tempTextbig.setString("SCORE   ");
+	this->scoreText = tempTextbig;
 }
 
 void Game::UpdateUI()
 {
-	this->hpText.setPosition(Vector2f(10.0f, 10.0f));
+	this->hpText.setPosition(Vector2f(10.0f, 90.0f));
 	this->hpText.setString("HP   " + this->player->getHPasString());
 
-	this->lvlText.setPosition(Vector2f(10.0f, 90.0f));
+	this->lvlText.setPosition(Vector2f(10.0f, 10.0f));
 	this->lvlText.setString("LVL   " + this->player->getLVLasString());
 
-	this->expText.setPosition(Vector2f(10.0f, 130.0f));
-	this->expText.setString("EXP   " + this->player->getEXPasString());
+	this->expText.setPosition(Vector2f(150.0f, 53.0f));
+	this->expText.setString("   " + this->player->getEXPasString());
 
-	this->goldText.setPosition(Vector2f(10.0f, 210.0f));
-	this->goldText.setString("GOLD   " + this->player->getGOLDasString());
+	//this->goldText.setPosition(Vector2f(10.0f, 220.0f));
+	//this->goldText.setString("GOLD   " + this->player->getGOLDasString());
 
-	this->scoreText.setPosition(Vector2f(10.0f, 250.0f));
+	this->scoreText.setPosition(Vector2f(10.0f, 180.0f));
 	this->scoreText.setString("SCORE   " + this->player->getSCOREasString());
 }
+
+void Game::InitBars()
+{
+	this->hpBar.setSize(Vector2f(140.f, 10.f));
+	this->hpBar.setFillColor(Color::White);
+	this->hpBar.setPosition(10.f, 140.f);
+
+	this->hpBarInside.setSize(Vector2f(140.f, 10.f));
+	this->hpBarInside.setFillColor(Color::Red);
+	this->hpBarInside.setPosition(this->hpBar.getPosition());
+
+	this->expBar.setSize(Vector2f(140.f, 10.f));
+	this->expBar.setFillColor(Color::White);
+	this->expBar.setPosition(10.f, 60.f);
+
+	this->expBarInside.setSize(Vector2f(140.f, 10.f));
+	this->expBarInside.setFillColor(Color(130, 225, 96));
+	this->expBarInside.setPosition(this->expBar.getPosition());
+}
+
+void Game::updateBars()
+{
+	float procentHP = player->getHP() / player->getHPmax();
+	hpBarInside.setSize(Vector2(140.f * procentHP, 10.f));
+
+	float procentEXP = player->getEXP() / player->getEXPnext();
+	expBarInside.setSize(Vector2(140.f * procentEXP, 10.f));
+}
+
 
 void Game::CombatUpdate()
 {
@@ -158,11 +194,34 @@ void Game::CombatUpdate()
 					// jeœli wróg martwy
 					if (enemies[j].getHP() <= 0)
 					{
-						enemies.erase(enemies.begin() + j);
-						player->addScore(10);
-						player->addEXP();
-						if (player->getEXP() == player->getEXPnext())
+						//rozna ilosc exp i score w zaleznosci od typu pokonanego wroga
+						if (enemies[j].getEnemyType() == Enemy::EnemyType::Harpy)
+						{
+							player->addEXP(10);
+							player->addScore(50);
+						}
+						else if(enemies[j].getEnemyType() == Enemy::EnemyType::Raven)
+						{
+							player->addEXP(20);
+							player->addScore(100);
+						}
+						else if (enemies[j].getEnemyType() == Enemy::EnemyType::Argus)
+						{
+							player->addEXP(30);
+							player->addScore(150);
+						}
+						
+						//sprawdzam czy gracz osiagnal nowy poziom
+						if (player->getEXP() >= player->getEXPnext())
+						{
+							int temp = player->getEXP() - player->getEXPnext();
 							player->levelUP();
+							player->addEXP(temp);
+							player->addScore(player->getlevelBonus());
+						}
+
+						enemies.erase(enemies.begin() + j);
+
 					}
 					else
 						j++;
@@ -398,6 +457,8 @@ void Game::Update()
 
 	//update UI
 	this->UpdateUI();
+	//update bars
+	this->updateBars();
 }
 
 void Game::DrawUI()
@@ -407,6 +468,14 @@ void Game::DrawUI()
 	this->window->draw(this->expText);
 	this->window->draw(this->goldText);
 	this->window->draw(this->scoreText);
+}
+
+void Game::drawBars()
+{
+	this->window->draw(this->hpBar);
+	this->window->draw(this->hpBarInside);
+	this->window->draw(this->expBar);
+	this->window->draw(this->expBarInside);
 }
 
 void Game::Draw()
@@ -427,6 +496,7 @@ void Game::Draw()
 	}
 
 	this->DrawUI();//rysowanie tekstu
+	this->drawBars();//rysowanie barków
 
 	//window->display();
 }

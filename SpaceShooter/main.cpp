@@ -6,6 +6,7 @@
 #include "Main_menu.h"
 #include "PauseMenu.h"
 #include "GameOverMenu.h"
+#include "ranking.h"
 
 using namespace sf;
 
@@ -13,7 +14,7 @@ using namespace sf;
 
 int main()
 {
-	enum class State { MENU, PLAYING, SHOP, PAUSE, GAMEOVER };
+	enum class State { MENU, PLAYING, SHOP, PAUSE, GAMEOVER};
 	State currentState = State::MENU;
 
 	RenderWindow window(VideoMode({ 1920,1080 }), "dragon shooter!");
@@ -26,6 +27,7 @@ int main()
 
 	//gameover menu
 	GameOverMenu OverScreen(window.getSize().x, window.getSize().y);
+
 
 	Game game(&window);
 
