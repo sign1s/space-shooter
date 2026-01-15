@@ -16,8 +16,8 @@ Main_menu::Main_menu(float width, float height) {
 	this->gameTitle.setFont(font);
 	this->gameTitle.setFillColor(Color::White);
 	this->gameTitle.setString("Dragon Shooter");
-	this->gameTitle.setCharacterSize(70);
-	this->gameTitle.setPosition((width - this->gameTitle.getGlobalBounds().width) / 2, 50);
+	this->gameTitle.setCharacterSize(100);
+	this->gameTitle.setPosition((width - this->gameTitle.getGlobalBounds().width) / 2, 90);
 
 	//Play
 	this->mainMenu[0].setFont(font);

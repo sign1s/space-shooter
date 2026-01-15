@@ -149,8 +149,10 @@ xcopy "$(SolutionDir)Assets" "$(SolutionDir)SpaceShooter\Assets" /E /I /Y
     <ClCompile Include="Main_menu.cpp" />
     <ClCompile Include="PauseMenu.cpp" />
     <ClCompile Include="player.cpp" />
+    <ClCompile Include="Shop.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DragonProfile.h" />
     <ClInclude Include="enemy.h" />
     <ClInclude Include="fire.h" />
     <ClInclude Include="Game.h" />
@@ -159,6 +161,7 @@ xcopy "$(SolutionDir)Assets" "$(SolutionDir)SpaceShooter\Assets" /E /I /Y
     <ClInclude Include="PauseMenu.h" />
     <ClInclude Include="player.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="Shop.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\Resources\ścierwojad.ico" />

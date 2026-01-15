@@ -18,22 +18,34 @@ private:
 
 	//Text
 	Font font;
-	Text staticPlayerText;
+	Text hpText;
+	Text lvlText;
+	Text expText;
+	Text goldText;
+	Text scoreText;
+	Text infoText;
+
+	//text timers
+	float textTimer;
+	float textTimerMax;
+
+	//bars
+	RectangleShape hpBar;
+	RectangleShape hpBarInside;
+	RectangleShape expBar;
+	RectangleShape expBarInside;
 
 	//gameover
 	bool gameOver;
+
 	//sounds
-	
 	sf::SoundBuffer deathBuffer;
 	sf::Sound deathSound;
-	
-	
 
-	
 	//std::vector<Player> players;
 	Player* player;
 	Texture playerTexture;
-	
+
 	//przeciwnicy
 	std::vector<Enemy> enemies;
 	std::vector<Enemy> enemiesSaved;
@@ -47,20 +59,22 @@ private:
 	Texture enemyRavenTexture;
 	Texture enemyArgusTexture;
 
-	
+	//waluta
+	int totalGold;
+
 public:
-	Game(RenderWindow* window);
+	Game(RenderWindow* window, const DragonProfile& choosenDragon);
 	virtual ~Game();
 
 	//pocisk
 	Texture fireTexture;
 	Texture feather_missileTexture;
-	
+
 	//player enemy collision
 	void CheckPlayerEnemyCollision();
 	void CheckEnemyFiresCollision();
 	void CheckProjectileCollisions();
-	
+
 	//Accessors
 	inline RenderWindow& getWindow()
 	{
@@ -72,13 +86,33 @@ public:
 		return this->gameOver;
 	}
 
+	inline const int getTotalGold() const {
+
+		return this->totalGold;
+	}
+
 	//Funkcje
-	void InitUI();//UI jest od tekstow(czyli hp narazie) //user interface
+	//user interface
+	void InitUI(); //teksty
 	void UpdateUI();
 	void DrawUI();
+	void InitBars(); //barki
+	void updateBars();
+	void drawBars();
+
 	void CombatUpdate();
 	void Update();
 	void Draw();
-	void Reset();//resertowanie rozgrywki
+	void Reset(const DragonProfile& profile);//resertowanie rozgrywki
+	bool enoughGold(int amount) {
+		if (this->totalGold >= amount) {
+			this->totalGold -= amount;
+			return true;
+		}
+		return false;
+	}
 
+	void showText(std::string message);
+	void updateNotifications(); //for text timers
+	void drawNotifications();   //for infoText
 };

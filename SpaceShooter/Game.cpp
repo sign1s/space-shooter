@@ -3,7 +3,7 @@
 #include <Windows.h>
 //#include <SFML/Audio.hpp>
 #include <filesystem>
-Game::Game(RenderWindow* window)
+Game::Game(RenderWindow* window, const DragonProfile& choosenDragon):totalGold(0)
 {
 	this->window = window;
 	this->window->setFramerateLimit(60);
@@ -15,18 +15,27 @@ Game::Game(RenderWindow* window)
 	this->font.loadFromFile("Assets/TrovicalCalmFreeItalic-aYAZx.otf");
 
 	//init sounds
-	
+
 	if (!deathBuffer.loadFromFile("Sounds/death.wav"))
 		MessageBoxA(nullptr, "Nie zaladowano dzwieku smierci", "BLAD", MB_OK);
 	deathSound.setBuffer(deathBuffer);
-	
+
 	//background
 	if (!backgroundTexture.loadFromFile("Textures/background.png"))
 	{
 		MessageBoxA(nullptr, "Nie zaladowano tekstury t³a", "BLAD", MB_OK);
 	}
-	
-	
+
+	//text timers
+	this->textTimerMax = 120.f;
+	this->textTimer = 0.f;
+
+	this->infoText.setFont(this->font);
+	this->infoText.setCharacterSize(60);
+	this->infoText.setFillColor(sf::Color::White);
+
+
+
 	//init textures
 	//this->playerTexture.loadFromFile("Textures/player/Green_Dragon_overhead.png");
 	if (!this->playerTexture.loadFromFile("Textures/player/Green_Dragon_overhead.png"))
@@ -41,8 +50,8 @@ Game::Game(RenderWindow* window)
 	this->enemyRavenTexture.loadFromFile("Textures/enemies/raven.png");
 	this->enemyArgusTexture.loadFromFile("Textures/enemies/argus.png");
 
-	
-	
+
+
 	backgroundSprite.setTexture(backgroundTexture);
 
 	Vector2u windowSize = window->getSize();
@@ -52,14 +61,10 @@ Game::Game(RenderWindow* window)
 		float(windowSize.x) / texSize.x,
 		float(windowSize.y) / texSize.y
 	);
-	
-	
-	
-	
-	
-	
+
+
 	//init player
-	player = new Player(&this->playerTexture, &fireTexture, this->window->getSize());
+	player = new Player(choosenDragon, &this->playerTexture, &fireTexture, this->window->getSize());
 	//this->players.push_back(Player(&playerTexture, &fireTexture));
 
 	/*this->enemiesSaved.emplace_back(
@@ -85,68 +90,168 @@ Game::Game(RenderWindow* window)
 
 
 	this->InitUI();
+	this->InitBars();
 }
 
 Game::~Game()
 {
-	delete player; //czy to ma tu byc?  //to ma tu byc
-	//ty mi lepiej powiedz czy CombatUpdate ma istniec //nie wiem na razie nie sobie bedzie
+	delete player; 
 }
 
 //inicjalizuje texts
 void Game::InitUI()
 {
-	Text tempText;
-	tempText.setFont(font);
-	tempText.setCharacterSize(40);
-	tempText.setFillColor(Color::White);
-	tempText.setString("HP ");
+	Text tempTextbig;
+	tempTextbig.setFont(font);
+	tempTextbig.setCharacterSize(40);
+	tempTextbig.setFillColor(Color(15, 207, 255));
 
-	this->staticPlayerText = tempText;
+	Text tempTextsmall;
+	tempTextsmall.setFont(font);
+	tempTextsmall.setCharacterSize(20);
+	tempTextsmall.setFillColor(Color(15, 207, 255));
+
+	tempTextbig.setString("HP   ");
+	this->hpText = tempTextbig;
+
+	tempTextbig.setString("LVL   ");
+	this->lvlText = tempTextbig;
+
+	tempTextsmall.setString("   ");
+	this->expText = tempTextsmall;
+
+	tempTextbig.setString("SCORE   ");
+	this->scoreText = tempTextbig;
+
+	tempTextbig.setString("GOLD   ");
+	this->goldText = tempTextbig;
+
+	/*tempTextbig.setString("TOTAL GOLD   ");
+	this->test = tempTextbig;*/
 }
 
 void Game::UpdateUI()
 {
-	this->staticPlayerText.setPosition(Vector2f(10.0f, 10.0f));
-	this->staticPlayerText.setString("HP " + this->player->getHPasString());
+	this->hpText.setPosition(Vector2f(10.0f, 90.0f));
+	this->hpText.setString("HP   " + this->player->getHPasString());
+
+	this->lvlText.setPosition(Vector2f(10.0f, 10.0f));
+	this->lvlText.setString("LVL   " + this->player->getLVLasString());
+
+	this->expText.setPosition(Vector2f(150.0f, 53.0f));
+	this->expText.setString("   " + this->player->getEXPasString());
+
+	this->scoreText.setPosition(Vector2f(10.0f, 180.0f));
+	this->scoreText.setString("SCORE   " + this->player->getSCOREasString());
+
+	this->goldText.setPosition(Vector2f(10.0f, 220.0f));
+	this->goldText.setString("GOLD   " + this->player->getGOLDasString());//std::to_string(this->totalGold));
+
+	/*this->test.setPosition(Vector2f(10.0f, 260.0f));
+	this->test.setString("TOTAL GOLD   " + std::to_string(this->totalGold));*/
+
 }
+
+void Game::InitBars()
+{
+	this->hpBar.setSize(Vector2f(140.f, 10.f));
+	this->hpBar.setFillColor(Color::White);
+	this->hpBar.setPosition(10.f, 140.f);
+
+	this->hpBarInside.setSize(Vector2f(140.f, 10.f));
+	this->hpBarInside.setFillColor(Color::Red);
+	this->hpBarInside.setPosition(this->hpBar.getPosition());
+
+	this->expBar.setSize(Vector2f(140.f, 10.f));
+	this->expBar.setFillColor(Color::White);
+	this->expBar.setPosition(10.f, 60.f);
+
+	this->expBarInside.setSize(Vector2f(140.f, 10.f));
+	this->expBarInside.setFillColor(Color(130, 225, 96));
+	this->expBarInside.setPosition(this->expBar.getPosition());
+}
+
+void Game::updateBars()
+{
+	float procentHP = player->getHP() / player->getHPmax();
+	hpBarInside.setSize(Vector2(140.f * procentHP, 10.f));
+
+	float procentEXP = player->getEXP() / player->getEXPnext();
+	expBarInside.setSize(Vector2(140.f * procentEXP, 10.f));
+}
+
 
 void Game::CombatUpdate()
 {
-	
-		auto& fires = player->getFires();
 
-		for (size_t i = 0; i < fires.size(); )
+	auto& fires = player->getFires();
+
+	for (size_t i = 0; i < fires.size(); )
+	{
+		bool fireDeleted = false;
+
+		for (size_t j = 0; j < enemies.size() && !fireDeleted; )
 		{
-			bool fireDeleted = false;
-
-			for (size_t j = 0; j < enemies.size() && !fireDeleted; )
+			if (fires[i].getGlobalBounds().intersects(
+				enemies[j].getGlobalBounds()))
 			{
-				if (fires[i].getGlobalBounds().intersects(
-					enemies[j].getGlobalBounds()))
+				// obra¿enia
+				enemies[j].takeDamage(fires[i].getDamage());
+
+				// usuñ pocisk
+				fires.erase(fires.begin() + i);
+				fireDeleted = true;
+
+				// jeœli wróg martwy
+				if (enemies[j].getHP() <= 0)
 				{
-					// obra¿enia
-					enemies[j].takeDamage(fires[i].getDamage());
+					//rozna ilosc exp i score w zaleznosci od typu pokonanego wroga
+					if (enemies[j].getEnemyType() == Enemy::EnemyType::Harpy)
+					{
+						player->addEXP(10);
+						player->addScore(50);
+						this->totalGold += 2;
+						player->addGold(2);
+					}
+					else if (enemies[j].getEnemyType() == Enemy::EnemyType::Raven)
+					{
+						player->addEXP(20);
+						player->addScore(100);
+						this->totalGold += 5;
+						player->addGold(5);
+					}
+					else if (enemies[j].getEnemyType() == Enemy::EnemyType::Argus)
+					{
+						player->addEXP(30);
+						player->addScore(150);
+						this->totalGold += 1;
+						player->addGold(1);
+					}
 
-					// usuñ pocisk
-					fires.erase(fires.begin() + i);
-					fireDeleted = true;
+					//sprawdzam czy gracz osiagnal nowy poziom
+					if (player->getEXP() >= player->getEXPnext())
+					{
+						int temp = player->getEXP() - player->getEXPnext();
+						player->levelUP();
+						player->addEXP(temp);
+						player->addScore(player->getlevelBonus());
+					}
 
-					// jeœli wróg martwy
-					if (enemies[j].getHP() <= 0)
-						enemies.erase(enemies.begin() + j);
-					else
-						j++;
+					enemies.erase(enemies.begin() + j);
+
 				}
 				else
-				{
 					j++;
-				}
 			}
-
-			if (!fireDeleted)
-				i++;
+			else
+			{
+				j++;
+			}
 		}
+
+		if (!fireDeleted)
+			i++;
+	}
 
 
 }
@@ -224,7 +329,6 @@ void Game::CheckProjectileCollisions()
 }
 
 
-
 void Game::Update()
 {
 	//gameover
@@ -237,13 +341,13 @@ void Game::Update()
 		return; // 
 	//collision
 	this->CombatUpdate();
-	
+
 	//player enemy collision
 	this->CheckPlayerEnemyCollision();
 	this->CheckEnemyFiresCollision();
 	this->CheckProjectileCollisions();
 	//Enemies update??
-	
+
 	for (size_t i = 0; i < enemies.size();)
 	{
 		// Aktualizacja pozycji wroga (Harpy, Raven, Argus)
@@ -285,9 +389,9 @@ void Game::Update()
 		case 2: type = Enemy::EnemyType::Argus; break;
 		}
 
-	
-		
-	
+
+
+
 
 
 		Texture* tex = nullptr;
@@ -297,7 +401,7 @@ void Game::Update()
 			tex = &enemyRavenTexture;
 		else if (type == Enemy::EnemyType::Harpy)
 			tex = &enemy01Texture;
-		
+
 		if (!tex)
 			return; // lub continue w pêtli spawn
 
@@ -342,48 +446,70 @@ void Game::Update()
 	}
 
 
-	
-
 
 	//update players
 	//tu nie ma tej petli bo ona jest do kilku graczy
 	player->Update(this->window->getSize()); //this->window->getSize()
 
-
-	//KOLES ZROBIL TO TUTAJ (USUWANIE TYCH POCISKOW), ALE CHYBA LEPIEJ MIEC TO W PLAYER::UPDATE
-	////Fires update
-	//std::vector<Fire>& playerFires = player->getFires();
-	//	//Window bounds
-	//for (size_t i = 0; i < playerFires.size(); ) {
-
-	//	//+getGlobalBounds().height zeby miec pewnosc, ze faktycznie sa poza ekranem
-	//	if (playerFires[i].getPosition().y + playerFires[i].getGlobalBounds().height < 0.f) {
-	//		playerFires.erase(playerFires.begin() + i);
-	//	}
-	//	else {
-	//		i++;
-	//	}
-	//}
-
-
-
 	//update UI
 	this->UpdateUI();
+	//update bars
+	this->updateBars();
 }
+
+
+void Game::showText(std::string message) {
+	this->infoText.setString(message);
+
+	this->infoText.setPosition(this->window->getSize().x / 2.f
+		- this->infoText.getGlobalBounds().width / 2.f,
+		this->window->getSize().y / 2.f);
+
+	this->textTimer = this->textTimerMax;
+}
+
+void Game::updateNotifications() {
+	if (this->textTimer > 0.f) {
+		this->textTimer -= 1.f;
+	}
+
+	int alpha = static_cast<int>((this->textTimer / this->textTimerMax) * 255);
+	this->infoText.setFillColor(sf::Color(255, 255, 255, alpha));
+	this->infoText.setOutlineColor(sf::Color(0, 0, 0, alpha));
+}
+
+void Game::drawNotifications() {
+	if (this->textTimer > 0.f) {
+		this->window->draw(this->infoText);
+	}
+}
+
 
 void Game::DrawUI()
 {
-	this->window->draw(this->staticPlayerText);
+	this->window->draw(this->hpText);
+	this->window->draw(this->lvlText);
+	this->window->draw(this->expText);
+	this->window->draw(this->scoreText);
+	this->window->draw(this->goldText);
+}
+
+void Game::drawBars()
+{
+	this->window->draw(this->hpBar);
+	this->window->draw(this->hpBarInside);
+	this->window->draw(this->expBar);
+	this->window->draw(this->expBarInside);
 }
 
 void Game::Draw()
 {
 	//window->clear();
-	
+
 	window->draw(backgroundSprite);
 
 	player->Draw(*window);
-	
+
 	for (auto& e : enemies)
 	{
 		e.Draw(*window);
@@ -394,16 +520,23 @@ void Game::Draw()
 	}
 
 	this->DrawUI();//rysowanie tekstu
+	this->drawBars();//rysowanie barków
 
 	//window->display();
 }
 
-void Game::Reset() {
+void Game::Reset(const DragonProfile& choosenDragon) {
 
 	this->gameOver = false;
 
+	std::string newTexturePath = choosenDragon.texturePath;
+	if (!this->playerTexture.loadFromFile(newTexturePath))
+	{
+		MessageBoxA(nullptr, "NIE ZALADOWANO TEKSTURY", "BLAD", MB_OK);
+	}
+
 	delete player;
-	player = new Player(&this->playerTexture, &fireTexture,
+	player = new Player(choosenDragon, &this->playerTexture, &fireTexture,
 		this->window->getSize()); //this->window->getSize()
 
 	//usunac pzreciwniow
@@ -413,3 +546,4 @@ void Game::Reset() {
 	//reset statystyk
 
 }
+

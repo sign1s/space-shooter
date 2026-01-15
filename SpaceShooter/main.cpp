@@ -6,6 +6,7 @@
 #include "Main_menu.h"
 #include "PauseMenu.h"
 #include "GameOverMenu.h"
+#include "Shop.h"
 
 using namespace sf;
 
@@ -13,7 +14,7 @@ using namespace sf;
 
 int main()
 {
-	enum class State { MENU, PLAYING, SHOP, PAUSE, GAMEOVER };
+	enum class State { MENU, PLAYING, SHOPPING, PAUSE, GAMEOVER };
 	State currentState = State::MENU;
 
 	RenderWindow window(VideoMode({ 1920,1080 }), "dragon shooter!");
@@ -27,7 +28,10 @@ int main()
 	//gameover menu
 	GameOverMenu OverScreen(window.getSize().x, window.getSize().y);
 
-	Game game(&window);
+	//shop
+	Shop shop(window.getSize().x, window.getSize().y);
+
+	Game game(&window, shop.getSelectedDragon());
 
 	srand(time(NULL));
 
@@ -54,18 +58,45 @@ int main()
 					case Keyboard::Enter:
 						int x = Menu.mainMenuPressed();
 						if (x == 0) {
-							game.Reset();
+							const DragonProfile& activeDragon = shop.getDragon(shop.getEquippedIndex());//Dragons[shop.getEquippedIndex()];
+							game.Reset(activeDragon);
 							currentState = State::PLAYING;
 						}
-						if (x == 1) currentState = State::SHOP;
+						if (x == 1) currentState = State::SHOPPING;
 						if (x == 2) window.close();
 						break;
 					}
 				}
 			}
-			else if (currentState == State::SHOP) {
+			else if (currentState == State::SHOPPING) {
 				if (event.type == Event::KeyPressed && event.key.code == Keyboard::Escape)
 					currentState = State::MENU;
+				if (event.type == Event::KeyReleased) {
+					if (event.key.code == Keyboard::Left) shop.moveLeft();
+					if (event.key.code == Keyboard::Right) shop.moveRight();
+					if (event.key.code == Keyboard::Enter) {
+						int x = shop.itemPressed();
+						const DragonProfile& selectedDragon = shop.getSelectedDragon();
+						if (!selectedDragon.isUnlocked) {
+							if (game.enoughGold(selectedDragon.price)) {
+								shop.unlockDragon(x);
+								//std::cout << "Kupiono smoka: " << selectedDragon.name << std::endl;
+							}
+							else {
+								game.showText("NOT ENOUGH GOLD!");
+								//std::cout << "Nie masz wystarczajacej ilosci zlota!" << std::endl;
+							}
+						}
+						else {
+							//wybieranie skina
+							shop.equipDragon(x);
+							std::cout << "Zmieniono smoka na: " << selectedDragon.name << std::endl;
+							//std::cout << "Masz juz tego smoka!" << std::endl;
+							shop.updateUI();
+						}
+					}
+
+				}
 			}
 			else if (currentState == State::PLAYING) {
 				if (event.type == Event::KeyPressed && event.key.code == Keyboard::Escape) {
@@ -79,8 +110,8 @@ int main()
 					if (event.key.code == Keyboard::Down) Pause.moveDown();
 					if (event.key.code == Keyboard::Enter) {
 						int x = Pause.pausePressed();
-						if (x == 0) currentState = State::PLAYING; // Wznów
-						if (x == 1) currentState = State::MENU; // WyjdŸ do menu						
+						if (x == 0) currentState = State::PLAYING; 
+						if (x == 1) currentState = State::MENU; 					
 					}
 				}
 			}
@@ -91,10 +122,10 @@ int main()
 					if (event.key.code == Keyboard::Enter) {
 						int x = OverScreen.buttonPressed();
 						if (x == 0) {
-							game.Reset();
-							currentState = State::PLAYING; // Wznów
+							game.Reset(shop.getSelectedDragon());
+							currentState = State::PLAYING;
 						}
-						if (x == 1) currentState = State::MENU; // WyjdŸ do menu						
+						if (x == 1) currentState = State::MENU;					
 					}
 				}
 			}
@@ -106,9 +137,10 @@ int main()
 		if (currentState == State::MENU) {
 			Menu.draw(window);
 		}
-		else if (currentState == State::SHOP) {
-			std::cout << "SHOP W TRAKCIE BUDOWY" << std::endl;
-			break;
+		else if (currentState == State::SHOPPING) {
+			game.updateNotifications();
+			shop.draw(window, game.getTotalGold());
+			game.drawNotifications();
 		}
 		else if (currentState == State::PLAYING) {
 			game.Update();
@@ -116,6 +148,7 @@ int main()
 				currentState = State::GAMEOVER;
 			}
 			game.Draw();
+			game.drawNotifications();
 		}
 		else if (currentState == State::PAUSE) {
 			game.Draw();

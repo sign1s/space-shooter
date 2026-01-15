@@ -1,7 +1,8 @@
 #include "enemy.h"
 #include <iostream> 
 #include <cmath>
-enum eTypes { MOVELEFT = 0,FOLLOW, FOLLOWFAST, FOLLOWSHOOT, FOLLOWFASTSHOOT};
+#include <time.h>
+enum eTypes { MOVELEFT = 0, FOLLOW, FOLLOWFAST, FOLLOWSHOOT, FOLLOWFASTSHOOT };
 
 Enemy::Enemy(Texture* texture, Vector2u windowBounds,
     Vector2f position, Vector2f direction,
@@ -66,25 +67,27 @@ Enemy::Enemy(Texture* texture, Vector2u windowBounds,
 
     this->hp = this->hpMax;
 }
-	
+
 Enemy::~Enemy()
 {
 
 }
 
+
 void Enemy::takeDamage(int damage)
 {
-	this->hp -= damage;
+    this->hp -= damage;
 
-	if (this->hp <= 0)
-		this->hp = 0;
+    if (this->hp <= 0)
+        this->hp = 0;
 }
 
+
 void Enemy::Update(const sf::Vector2f& playerPos)
-	// Wypisuj pozycjê co klatkê (tymczasowo)
-	 //std::cout << "Enemy X: " << this->sprite.getPosition().x << " Y: " << this->sprite.getPosition().y << std::endl;
+// Wypisuj pozycjê co klatkê (tymczasowo)
+ //std::cout << "Enemy X: " << this->sprite.getPosition().x << " Y: " << this->sprite.getPosition().y << std::endl;
 {
-	
+
     if (type == EnemyType::Harpy)
     {
         // Zatrzymaj siê na 60% wysokoœci ekranu
@@ -123,20 +126,20 @@ void Enemy::Update(const sf::Vector2f& playerPos)
                 Vector2f spawnPos = sprite.getPosition();
                 spawnPos.x += sprite.getGlobalBounds().width / 2.f;
                 spawnPos.y += sprite.getGlobalBounds().height / 2.f;
-              
+
                 Vector2f offset(sprite.getGlobalBounds().width * 1.1f, sprite.getGlobalBounds().height * 1.1f);
-                fires.emplace_back(projectileTexture, sprite.getPosition() + offset, dir * projectileSpeed,scale);// dir predkosc
-                
+                fires.emplace_back(projectileTexture, sprite.getPosition() + offset, dir * projectileSpeed, scale);// dir predkosc
+
             }
         }
     }
-	else if (type == EnemyType::Raven)
-	{
-		sf::Vector2f toPlayer = playerPos - sprite.getPosition();
-		float len = std::sqrt(toPlayer.x * toPlayer.x + toPlayer.y * toPlayer.y);
-		if (len != 0.f) toPlayer /= len;
-		sprite.move(toPlayer * speed * 2.f);
-	}
+    else if (type == EnemyType::Raven)
+    {
+        sf::Vector2f toPlayer = playerPos - sprite.getPosition();
+        float len = std::sqrt(toPlayer.x * toPlayer.x + toPlayer.y * toPlayer.y);
+        if (len != 0.f) toPlayer /= len;
+        sprite.move(toPlayer * speed * 2.f);
+    }
     else if (type == EnemyType::Argus)
     {
         elapsedTime += 1.f / 60.f; // lub deltaTime jeœli masz
@@ -155,7 +158,7 @@ void Enemy::Update(const sf::Vector2f& playerPos)
 }
 void Enemy::Draw(RenderTarget& target)
 {
-	target.draw(this->sprite);
+    target.draw(this->sprite);
 }
 
 

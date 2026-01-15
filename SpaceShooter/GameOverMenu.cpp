@@ -10,14 +10,14 @@ GameOverMenu::GameOverMenu(float width, float height) {
 	this->background.setTexture(&this->mainTexture);*/
 
 	this->background.setSize(Vector2f(width, height));
-	this->background.setFillColor(Color(255, 0, 0, 100));
+	this->background.setFillColor(Color(255, 0, 0, 70));
 
 	if (!font.loadFromFile("Assets/TrovicalCalmFreeItalic-aYAZx.otf")) {
 		std::cout << "No font" << std::endl;
 	}
 	//Game over text
 	this->gameOverText.setFont(this->font);
-	this->gameOverText.setCharacterSize(70);
+	this->gameOverText.setCharacterSize(100);
 	this->gameOverText.setFillColor(Color::Black); //Color(105, 5, 5, 255) czerwony
 	this->gameOverText.setString("YOU DIED");
 	this->gameOverText.setPosition((width
