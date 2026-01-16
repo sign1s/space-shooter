@@ -3,7 +3,7 @@
 #include <SFML/Audio.hpp>
 #include <Windows.h>
 
-enum controls { RIGHT = 0, LEFT, UP, DOWN, SHOOT }; //Space
+enum controls { RIGHT = 0, LEFT, UP, DOWN, SHOOT }; 
 
 Player::Player(const DragonProfile& profile, Texture* texture, Texture* fireTexture,
 	Vector2u windowBounds,
@@ -99,15 +99,6 @@ sf::FloatRect Player::getGlobalBounds() const
 	return this->sprite.getGlobalBounds();
 }
 //to
-int Player::getHP() const
-{
-	return this->hp;
-}
-
-float Player::getHPmax() const
-{
-	return this->hpMax;
-}
 
 void Player::addScore(int value)
 {
@@ -119,35 +110,34 @@ void Player::addEXP(int value)
 	this->exp += value;
 }
 
-int Player::getEXP() const
-{
-	return this->exp;
-}
-
-float Player::getEXPnext() const
-{
-	return this->expNext;
-}
-
-int Player::getlevelBonus() const
-{
-	return this->levelBonus;
-}
 
 void Player::addGold(int value) {
 
 	this->gold += value;
 }
 
-void Player::levelUP()
+void Player::setScore(int value)
 {
-	level++;
-	expNext += 20;
-	exp = 0;
-	damage++;
-	hpMax += 2;
-	hp = hpMax;
-	levelBonus += 10;
+	this->score = value;
+}
+
+void Player::setLevel(int value)
+{
+	this->level = value;
+	this->UpdateStats();
+}
+
+void Player::UpdateStats()
+{
+	this->exp = 0;
+	this->expNext = 20 + (this->level * 20);
+
+	this->damage = this->level;
+
+	this->hpMax = 1 + this->level * 5;
+	this->hp = this->hpMax;
+
+	this->levelBonus = 10 * this->level;
 }
 
 void Player::Update(Vector2u windowBounds)

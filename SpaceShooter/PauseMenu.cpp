@@ -12,19 +12,28 @@ PauseMenu::PauseMenu(float width, float height) {
 	
 	//Play
 	this->pauseMenu[0].setFont(font);
-	this->pauseMenu[0].setFillColor(Color::Blue);
+	this->pauseMenu[0].setFillColor(Color(15, 207, 255));
 	this->pauseMenu[0].setString("Play");
 	this->pauseMenu[0].setCharacterSize(70);
 	this->pauseMenu[0].setPosition((width - this->pauseMenu[0].getGlobalBounds().width) / 2,
-		height / 2 - 100);
+		height / 2 - 200);
 
-	//Shop
+	//Save File
 	this->pauseMenu[1].setFont(font);
-	this->pauseMenu[1].setFillColor(Color::White);
-	this->pauseMenu[1].setString("Exit");
+	this->pauseMenu[1].setFillColor(Color(15, 207, 255));
+	this->pauseMenu[1].setString("Save File");
 	this->pauseMenu[1].setCharacterSize(70);
 	this->pauseMenu[1].setPosition((width - this->pauseMenu[1].getGlobalBounds().width) / 2,
+		height / 2-100);
+
+	//Exit
+	this->pauseMenu[2].setFont(font);
+	this->pauseMenu[2].setFillColor(Color(15, 207, 255));
+	this->pauseMenu[2].setString("Exit");
+	this->pauseMenu[2].setCharacterSize(70);
+	this->pauseMenu[2].setPosition((width - this->pauseMenu[2].getGlobalBounds().width) / 2,
 		height / 2);
+
 
 	this->pauseSelected = 0;
 }
@@ -50,7 +59,7 @@ void PauseMenu::moveUp() {
 		//if (mainMenuSelected == -1) {
 		//	mainMenuSelected = 2;
 		//}
-		this->pauseMenu[this->pauseSelected].setFillColor(Color::Blue);
+		this->pauseMenu[this->pauseSelected].setFillColor(Color(15, 207, 255));
 	}
 }
 
@@ -64,7 +73,7 @@ void PauseMenu::moveDown() {
 
 		//	mainMenuSelected = 2;
 		//}
-		this->pauseMenu[this->pauseSelected].setFillColor(Color::Blue);
+		this->pauseMenu[this->pauseSelected].setFillColor(Color(15, 207, 255));
 	}
 }
 
@@ -74,7 +83,7 @@ void PauseMenu::resetPause() {
 	for (int i = 0; i < Max_pause_menu; i++) {
 		this->pauseMenu[i].setFillColor(Color::White);
 	}
-	this->pauseMenu[0].setFillColor(Color::Blue);
+	this->pauseMenu[0].setFillColor(Color(15, 207, 255));
 }
 
 

@@ -232,7 +232,7 @@ void Game::CombatUpdate()
 					if (player->getEXP() >= player->getEXPnext())
 					{
 						int temp = player->getEXP() - player->getEXPnext();
-						player->levelUP();
+						player->setLevel(player->getLevel()+1);
 						player->addEXP(temp);
 						player->addScore(player->getlevelBonus());
 					}

@@ -82,7 +82,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\natal\OneDrive\Pulpit\SFML-2.6.2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>sfml-graphics-s-d.lib;sfml-window-s-d.lib;sfml-system-s-d.lib;sfml-audio-s-d.lib;sfml-network-s-d.lib;freetype.lib;openal32.lib;gdi32.lib;winmm.lib;opengl32.lib;ws2_32.lib;user32.lib;Advapi32.lib;vorbis.lib;ogg.lib;vorbisfile.lib;flac.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
@@ -105,7 +105,7 @@ exit /b 0
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Users\Jeremi\Desktop\gra\SpaceShooter\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\natal\OneDrive\Pulpit\SFML-2.6.2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>sfml-graphics-s-d.lib;sfml-window-s-d.lib;sfml-system-s-d.lib;sfml-audio-s-d.lib;sfml-network-s-d.lib;freetype.lib;openal32.lib;gdi32.lib;winmm.lib;opengl32.lib;ws2_32.lib;user32.lib;Advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
@@ -149,6 +149,8 @@ xcopy "$(SolutionDir)Assets" "$(SolutionDir)SpaceShooter\Assets" /E /I /Y
     <ClCompile Include="Main_menu.cpp" />
     <ClCompile Include="PauseMenu.cpp" />
     <ClCompile Include="player.cpp" />
+    <ClCompile Include="FileManager.cpp" />
+    <ClCompile Include="PlayerName.cpp" />
     <ClCompile Include="Shop.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -160,7 +162,9 @@ xcopy "$(SolutionDir)Assets" "$(SolutionDir)SpaceShooter\Assets" /E /I /Y
     <ClInclude Include="Main_menu.h" />
     <ClInclude Include="PauseMenu.h" />
     <ClInclude Include="player.h" />
+    <ClInclude Include="PlayerName.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="FileManager.h" />
     <ClInclude Include="Shop.h" />
   </ItemGroup>
   <ItemGroup>

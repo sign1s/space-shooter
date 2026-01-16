@@ -57,7 +57,7 @@ public:
 		int LEFT = Keyboard::Left,
 		int UP = Keyboard::Up,
 		int DOWN = Keyboard::Down,
-		int SHOOT = Keyboard::Space);//i shoot
+		int SHOOT = Keyboard::Space);
 	virtual ~Player();
 
 
@@ -66,7 +66,7 @@ public:
 	inline Vector2f getPosition()const { return this->sprite.getPosition(); }
 	inline const String getHPasString()const { return std::to_string(this->hp) + "/" + std::to_string(static_cast<int>(this->hpMax)); }
 	inline const String getLVLasString()const { return std::to_string(this->level); }
-	inline const String getEXPasString()const { return std::to_string(this->exp) + "/" + std::to_string(static_cast<int>(this->expNext)); }
+	inline const String getEXPasString()const { return std::to_string(this->exp) + " / " + std::to_string(static_cast<int>(this->expNext)); }
 	inline const String getGOLDasString()const { return std::to_string(this->gold); }
 	inline const String getSCOREasString()const { return std::to_string(this->score); }
 	sf::FloatRect getGlobalBounds() const;//cos do hitboxow
@@ -78,15 +78,26 @@ public:
 	void Update(Vector2u windowBounds);
 	void Draw(RenderTarget& target);
 	void takeDamage(int damage);
-	int getHP() const;
-	float getHPmax() const;
 	void addScore(int value);
 	void addEXP(int value);
-	int getEXP() const;
-	float getEXPnext() const;
-	int getlevelBonus() const;
-	void addGold(int value); //niewiadomo jeszcze czy bedzie zloto
-	void levelUP();
+	void addGold(int value);
+
+	//Gettery
+	int getLevel()const { return level; }
+	int getHP() const { return hp; }
+	float getHPmax() const { return hpMax; }
+	int getEXP() const { return exp; }
+	float getEXPnext() const { return expNext; }
+	int getlevelBonus() const { return levelBonus; }
+	int getGold() const { return gold; }
+	int getDamage() const { return damage; }
+	int getScore() const { return score; }
+
+
+	//update z levelami
+	void setLevel(int value);
+	void setScore(int value);
+	void UpdateStats();
 
 };
 

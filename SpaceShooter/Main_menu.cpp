@@ -21,28 +21,37 @@ Main_menu::Main_menu(float width, float height) {
 
 	//Play
 	this->mainMenu[0].setFont(font);
-	this->mainMenu[0].setFillColor(Color::Blue);
+	this->mainMenu[0].setFillColor(Color(15, 207, 255));
 	this->mainMenu[0].setString("Play");
 	this->mainMenu[0].setCharacterSize(70);
 	this->mainMenu[0].setPosition((width - this->mainMenu[0].getGlobalBounds().width) / 2,
-		height / 2 - 100);
+		height / 2 - 200);
 
 	//Shop
-	this->mainMenu[1].setFont(font);
-	this->mainMenu[1].setFillColor(Color::White);
-	this->mainMenu[1].setString("Shop");
-	this->mainMenu[1].setCharacterSize(70);
-	this->mainMenu[1].setPosition((width - this->mainMenu[1].getGlobalBounds().width) / 2,
+	this->mainMenu[2].setFont(font);
+	this->mainMenu[2].setFillColor(Color::White);
+	this->mainMenu[2].setString("Shop");
+	this->mainMenu[2].setCharacterSize(70);
+	this->mainMenu[2].setPosition((width - this->mainMenu[2].getGlobalBounds().width) / 2,
 		height / 2);
 
 	//Exit
-	this->mainMenu[2].setFont(font);
-	this->mainMenu[2].setFillColor(Color::White);
-	this->mainMenu[2].setString("Exit");
-	this->mainMenu[2].setCharacterSize(70);
-	this->mainMenu[2].setPosition((width - this->mainMenu[2].getGlobalBounds().width) / 2, height / 2 + 100);
+	this->mainMenu[3].setFont(font);
+	this->mainMenu[3].setFillColor(Color::White);
+	this->mainMenu[3].setString("Exit");
+	this->mainMenu[3].setCharacterSize(70);
+	this->mainMenu[3].setPosition((width - this->mainMenu[3].getGlobalBounds().width) / 2, height / 2 + 100);
+
+	//Load File
+	this->mainMenu[1].setFont(font);
+	this->mainMenu[1].setFillColor(Color::White);
+	this->mainMenu[1].setString("Load File");
+	this->mainMenu[1].setCharacterSize(70);
+	this->mainMenu[1].setPosition((width - this->mainMenu[1].getGlobalBounds().width) / 2, height/ 2 - 100);
 
 	this->mainMenuSelected = 0;
+
+
 }
 
 Main_menu::~Main_menu() {
@@ -67,7 +76,7 @@ void Main_menu::moveUp() {
 		//if (mainMenuSelected == -1) {
 		//	mainMenuSelected = 2;
 		//}
-		this->mainMenu[this->mainMenuSelected].setFillColor(Color::Blue);
+		this->mainMenu[this->mainMenuSelected].setFillColor(Color(15, 207, 255));
 	}
 }
 
@@ -81,7 +90,7 @@ void Main_menu::moveDown() {
 
 		//	mainMenuSelected = 2;
 		//}
-		this->mainMenu[this->mainMenuSelected].setFillColor(Color::Blue);
+		this->mainMenu[this->mainMenuSelected].setFillColor(Color(15, 207, 255));
 	}
 }
 

@@ -115,4 +115,7 @@ public:
 	void showText(std::string message);
 	void updateNotifications(); //for text timers
 	void drawNotifications();   //for infoText
+
+	//funkcja ktora bierze wskaznik do playera
+	 Player* getPlayer() const { return this->player; }
 };

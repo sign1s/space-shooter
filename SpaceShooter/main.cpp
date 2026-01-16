@@ -7,6 +7,8 @@
 #include "PauseMenu.h"
 #include "GameOverMenu.h"
 #include "Shop.h"
+#include "FileManager.h"
+#include "PlayerName.h"
 
 using namespace sf;
 
@@ -14,7 +16,7 @@ using namespace sf;
 
 int main()
 {
-	enum class State { MENU, PLAYING, SHOPPING, PAUSE, GAMEOVER };
+	enum class State { MENU, PLAYING, SHOPPING, PAUSE, GAMEOVER, PLAYERNAME, LOADFILE, SAVEFILE };
 	State currentState = State::MENU;
 
 	RenderWindow window(VideoMode({ 1920,1080 }), "dragon shooter!");
@@ -31,6 +33,10 @@ int main()
 	//shop
 	Shop shop(window.getSize().x, window.getSize().y);
 
+	FileManager file(window.getSize().x, window.getSize().y);
+
+	PlayerName Name(window.getSize().x, window.getSize().y);
+
 	Game game(&window, shop.getSelectedDragon());
 
 	srand(time(NULL));
@@ -40,6 +46,7 @@ int main()
 		Event event;
 		while (window.pollEvent(event))
 		{
+			file.UpdateSlotUI();
 			if (event.type == Event::Closed)
 				window.close();
 			/*if (event.type == Event::KeyPressed && event.key.code == Keyboard::Escape)
@@ -58,17 +65,35 @@ int main()
 					case Keyboard::Enter:
 						int x = Menu.mainMenuPressed();
 						if (x == 0) {
-							const DragonProfile& activeDragon = shop.getDragon(shop.getEquippedIndex());//Dragons[shop.getEquippedIndex()];
-							game.Reset(activeDragon);
-							currentState = State::PLAYING;
+							currentState = State::PLAYERNAME;
+							//currentState = State::PLAYING;
 						}
-						if (x == 1) currentState = State::SHOPPING;
-						if (x == 2) window.close();
+						if (x == 2) currentState = State::SHOPPING;
+						if (x == 3) window.close();
+						if (x == 1)currentState = State::LOADFILE;
 						break;
 					}
 				}
 			}
-			else if (currentState == State::SHOPPING) {
+			else if (currentState == State::PLAYERNAME)
+			{
+				if (event.type == Event::TextEntered)
+					Name.enterPlayerName(event);
+
+				if (event.type == Event::KeyPressed && event.key.code == Keyboard::Enter)
+				{
+					const DragonProfile& activeDragon = shop.getDragon(shop.getEquippedIndex());//Dragons[shop.getEquippedIndex()];
+					game.Reset(activeDragon);
+					currentState = State::PLAYING;
+				}
+
+				if (event.type == Event::KeyPressed && event.key.code == Keyboard::Escape)
+				{
+					currentState = State::MENU;
+				}
+			}
+			else if (currentState == State::SHOPPING) 
+			{
 				if (event.type == Event::KeyPressed && event.key.code == Keyboard::Escape)
 					currentState = State::MENU;
 				if (event.type == Event::KeyReleased) {
@@ -98,68 +123,162 @@ int main()
 
 				}
 			}
-			else if (currentState == State::PLAYING) {
-				if (event.type == Event::KeyPressed && event.key.code == Keyboard::Escape) {
-					Pause.resetPause();
-					currentState = State::PAUSE;
+			else if (currentState == State::LOADFILE)
+			{
+				if (event.type == Event::KeyPressed && event.key.code == Keyboard::Escape)
+				{
+					currentState = State::MENU;
 				}
+				if (event.type == Event::KeyReleased) {
+
+					switch (event.key.code) {
+					case Keyboard::Up:
+						file.moveUp();
+						break;
+					case Keyboard::Down:
+						file.moveDown();
+						break;
+					case Keyboard::Enter:
+					{
+						int x = file.slotPressed();
+
+						std::string tempPlayerName;
+						int tempLevel, tempScore, tempDragonIndex;//zmienne pomocnicze
+
+						if (file.LoadFile(x, tempPlayerName,
+							tempLevel, tempScore, tempDragonIndex))
+						{
+							game.Reset(shop.getSelectedDragon());
+
+							Player* pointer = game.getPlayer();//pobieram wskaznik do gracza
+							pointer->setLevel(tempLevel);
+							pointer->setScore(tempScore);
+
+							shop.equipDragon(tempDragonIndex);
+
+
+							currentState = State::PLAYERNAME;
+						}
+
+						break;
+					}
+					}
+				}
+			}
+				else if (currentState == State::PLAYING) {
+					if (event.type == Event::KeyPressed && event.key.code == Keyboard::Escape)
+					{
+						Pause.resetPause();
+						currentState = State::PAUSE;
+					}
+				}
+				else if (currentState == State::PAUSE) {
+					if (event.type == Event::KeyReleased)
+					{
+						if (event.key.code == Keyboard::Up) Pause.moveUp();
+						if (event.key.code == Keyboard::Down) Pause.moveDown();
+						if (event.key.code == Keyboard::Enter)
+						{
+							int x = Pause.pausePressed();
+							if (x == 0) currentState = State::PLAYING;
+							if (x == 1) currentState = State::SAVEFILE;
+							if (x == 2) currentState = State::MENU;
+						}
+					}
+				}
+				else if (currentState == State::SAVEFILE)
+				{
+					if (event.type == Event::KeyPressed && event.key.code == Keyboard::Escape)
+					{
+						currentState = State::PAUSE;
+					}
+					if (event.type == Event::KeyReleased) {
+
+						switch (event.key.code) {
+						case Keyboard::Up:
+							file.moveUp();
+							break;
+						case Keyboard::Down:
+							file.moveDown();
+							break;
+						case Keyboard::Enter:
+						{
+							int x = file.slotPressed();
+							Player* pointer = game.getPlayer();
+
+							std::string currentName = Name.getName();
+							int currentLevel = pointer->getLevel();
+							int currentScore = pointer->getScore();
+							int currentDragon = shop.getEquippedIndex();
+
+							file.SaveFile(x, currentName, currentLevel, currentScore, currentDragon);
+							file.UpdateSlotUI();
+
+							currentState = State::MENU;//do PAUZA?
+							break;
+						}
+						}
+					}
+				}
+				else if (currentState == State::GAMEOVER)
+				{
+					if (event.type == Event::KeyReleased)
+					{
+						if (event.key.code == Keyboard::Up) OverScreen.moveUp();
+						if (event.key.code == Keyboard::Down) OverScreen.moveDown();
+						if (event.key.code == Keyboard::Enter) {
+							int x = OverScreen.buttonPressed();
+							if (x == 0) {
+								game.Reset(shop.getSelectedDragon());
+								currentState = State::PLAYING;
+							}
+							if (x == 1) currentState = State::MENU;
+						}
+					}
+				}
+		}
+			//DRAWING
+			window.clear();
+
+			if (currentState == State::MENU) {
+				Menu.draw(window);
+			}
+			else if (currentState == State::SHOPPING) {
+				game.updateNotifications();
+				shop.draw(window, game.getTotalGold());
+				game.drawNotifications();
+			}
+			else if (currentState == State::LOADFILE)
+			{
+				file.draw(window);
+			}
+			else if (currentState == State::PLAYERNAME)
+			{
+				Name.draw(window);
+			}
+			else if (currentState == State::PLAYING) {
+				game.Update();
+				if (game.getGameOver()) {
+					currentState = State::GAMEOVER;
+				}
+				game.Draw();
+				game.drawNotifications();
 			}
 			else if (currentState == State::PAUSE) {
-				if (event.type == Event::KeyReleased) {
-					if (event.key.code == Keyboard::Up) Pause.moveUp();
-					if (event.key.code == Keyboard::Down) Pause.moveDown();
-					if (event.key.code == Keyboard::Enter) {
-						int x = Pause.pausePressed();
-						if (x == 0) currentState = State::PLAYING; 
-						if (x == 1) currentState = State::MENU; 					
-					}
-				}
+				game.Draw();
+				Pause.draw(window);
+			}
+			else if (currentState == State::SAVEFILE)
+			{
+				file.draw(window);
 			}
 			else if (currentState == State::GAMEOVER) {
-				if (event.type == Event::KeyReleased) {
-					if (event.key.code == Keyboard::Up) OverScreen.moveUp();
-					if (event.key.code == Keyboard::Down) OverScreen.moveDown();
-					if (event.key.code == Keyboard::Enter) {
-						int x = OverScreen.buttonPressed();
-						if (x == 0) {
-							game.Reset(shop.getSelectedDragon());
-							currentState = State::PLAYING;
-						}
-						if (x == 1) currentState = State::MENU;					
-					}
-				}
+				game.Draw();
+				OverScreen.draw(window);
 			}
-		}
-
-		//DRAWING
-		window.clear();
-
-		if (currentState == State::MENU) {
-			Menu.draw(window);
-		}
-		else if (currentState == State::SHOPPING) {
-			game.updateNotifications();
-			shop.draw(window, game.getTotalGold());
-			game.drawNotifications();
-		}
-		else if (currentState == State::PLAYING) {
-			game.Update();
-			if (game.getGameOver()) {
-				currentState = State::GAMEOVER;
-			}
-			game.Draw();
-			game.drawNotifications();
-		}
-		else if (currentState == State::PAUSE) {
-			game.Draw();
-			Pause.draw(window);
-		}
-		else if (currentState == State::GAMEOVER) {
-			game.Draw();
-			OverScreen.draw(window);
-		}
 
 
-		window.display();
+			window.display();
+
 	}
 }

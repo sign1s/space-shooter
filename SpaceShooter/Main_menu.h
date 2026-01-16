@@ -4,7 +4,7 @@
 #include<iostream>
 
 using namespace sf;
-#define Max_main_menu 3
+#define Max_main_menu 4
 
 class Main_menu
 {

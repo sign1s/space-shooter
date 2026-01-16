@@ -4,7 +4,7 @@
 #include<iostream>
 
 using namespace sf;
-#define Max_pause_menu 2
+#define Max_pause_menu 3
 
 class PauseMenu
 {
