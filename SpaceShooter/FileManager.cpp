@@ -102,14 +102,14 @@ void FileManager::UpdateSlotUI()
 
 
 bool FileManager::LoadFile(int slotSelected, std::string& playerName, 
-	int& level, int& score, int& dragon_index)
+	int& level, int& hp, int& exp, int& gold, int& score, int& dragon_index)
 {
 
 	std::ifstream file(filenames[slotSelected]);
 
 	if (file.is_open())
 	{
-		if (file >> playerName >> level >> score >> dragon_index)
+		if (file >> playerName >> level >> hp >> exp >> gold >> score >> dragon_index)
 		{
 			std::cout << "wczytano slot" << std::endl;
 			return true;
@@ -130,13 +130,13 @@ bool FileManager::LoadFile(int slotSelected, std::string& playerName,
 }
 
 void FileManager::SaveFile(int slotSelected, std::string playerName, 
-	int level, int score, int dragon_index)
+	int level, int hp, int exp, int gold, int score, int dragon_index)
 {
 	std::ofstream file(filenames[slotSelected]);
 
 	if (file.is_open())
 	{
-		file << playerName << " " << level << " " << score << " " << dragon_index;
+		file << playerName << " " << level << " " << " " << hp << " " << exp << " " << gold << " " << score << " " << dragon_index;
 		file.close();
 	    
 		std::cout << "zapisano slot " <<slotSelected<< std::endl;

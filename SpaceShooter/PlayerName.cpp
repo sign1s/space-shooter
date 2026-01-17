@@ -36,6 +36,11 @@ PlayerName::~PlayerName() {
 
 }
 
+void PlayerName::setName(String name)
+{
+	this->playerName = name;
+}
+
 void PlayerName::draw(RenderWindow& window) 
 {
 	window.draw(this->background);

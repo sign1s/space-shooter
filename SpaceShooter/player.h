@@ -81,23 +81,33 @@ public:
 	void addScore(int value);
 	void addEXP(int value);
 	void addGold(int value);
+	void UpdateStats();
+	void LevelUp();
 
 	//Gettery
 	int getLevel()const { return level; }
+
 	int getHP() const { return hp; }
 	float getHPmax() const { return hpMax; }
+
 	int getEXP() const { return exp; }
 	float getEXPnext() const { return expNext; }
+
 	int getlevelBonus() const { return levelBonus; }
+
 	int getGold() const { return gold; }
+
 	int getDamage() const { return damage; }
+
 	int getScore() const { return score; }
 
 
-	//update z levelami
+	//Settery
 	void setLevel(int value);
+	void setHP(int value);
+	void setEXP(int value);
+	void setGOLD(int value);
 	void setScore(int value);
-	void UpdateStats();
 
 };
 

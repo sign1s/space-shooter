@@ -28,10 +28,10 @@ public:
 
 	//funkja tez sprawdza czy dany slot jest "<EMPTY>"
 	bool LoadFile(int slotSelected, std::string& playerName,
-		int& level, int& score, int& dragon_index);
+		int& level, int&hp, int& exp,int&gold, int& score, int& dragon_index);
 
 	void SaveFile(int slotSelected, std::string playerName,
-		int level, int score, int dragon_index);
+		int level, int hp, int exp, int gold, int score, int dragon_index);
 
 	~FileManager();
 private:
