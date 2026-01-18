@@ -49,6 +49,7 @@ Game::Game(RenderWindow* window, const DragonProfile& choosenDragon):totalGold(0
 	this->feather_missileTexture.loadFromFile("Textures/bullet/feather_missile.png");
 	//pocisk widma
 	this->wraithMissile.loadFromFile("Textures/bullet/wraithMissile.png");
+	this->bayleMissile.loadFromFile("Textures/bullet/bayleMissile.png");
 
 	this->enemy01Texture.loadFromFile("Textures/enemies/Harpy.png");
 	this->enemyRavenTexture.loadFromFile("Textures/enemies/raven.png");
@@ -400,10 +401,12 @@ void Game::Update()
 	this->CheckProjectileCollisions();
 	//Enemies update??
 
+
+	float dt = deltaClock.restart().asSeconds();
 	for (size_t i = 0; i < enemies.size();)
 	{
 		// Aktualizacja pozycji wroga (Harpy, Raven, Argus)
-		enemies[i].Update(player->getPosition());
+		enemies[i].Update(player->getPosition(), dt);
 
 		// Aktualizacja pocisków wroga
 		auto& enemyFires = enemies[i].getFires();
@@ -449,7 +452,7 @@ void Game::Update()
 	gameTimer += 1.f / 60.f; // ka¿da klatka = 1/60 sekundy
 
 	// --- Wy³¹czamy resp zwyk³ych przeciwników po 3 minutach ---
-	if (gameTimer >= 20.f) {
+	if (gameTimer >= 3.f) {
 		normalEnemiesSpawnEnabled = false;
 	}
 
@@ -463,7 +466,7 @@ void Game::Update()
 	}
 
 	// --- Spawn Bayle’a tylko raz ---
-	if (!bayleSpawned && gameTimer >= 20.f && !normalEnemiesSpawnEnabled && allEnemiesDead) {
+	if (!bayleSpawned && gameTimer >= 3.f && !normalEnemiesSpawnEnabled && allEnemiesDead) {
 		bayleSpawned = true;
 
 		sf::Vector2f spawnPos(window->getSize().x / 2.f, -200.f); // nad ekranem
@@ -475,14 +478,15 @@ void Game::Update()
 			spawnPos,
 			direction,
 			sf::Vector2f(2.f, 2.f),      // skala sprite
-			Enemy::EnemyType::BossBayle
+			Enemy::EnemyType::BossBayle,
+			&bayleMissile
 		);
+		bayle = &enemies.back();
 	}
 
 	// Aktualizacja Bayle'a
 	if (bayleSpawned && bayle)
 	{
-		enemies.back().Update(player->getPosition());
 
 
 		if (bayle->isDead())
@@ -615,8 +619,8 @@ void Game::updateNotifications()
 	this->infoText.setOutlineColor(sf::Color(0, 0, 0, alpha));
 
 	// Efekt Wraith: miganie gracza na czarno
-	float deltaTime = deltaClock.restart().asSeconds(); // czas od ostatniego update
-
+	//float deltaTime = deltaClock.restart().asSeconds(); // czas od ostatniego update
+	float deltaTime = 1.f / 60.f;
 	if (wraithFogTimer > 0.f)
 	{
 		wraithFogTimer -= deltaTime;

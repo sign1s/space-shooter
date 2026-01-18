@@ -95,6 +95,7 @@ public:
 	Texture fireTexture;
 	Texture feather_missileTexture;
 	Texture wraithMissile;
+	Texture bayleMissile;
 
 	//player enemy collision
 	void CheckPlayerEnemyCollision();

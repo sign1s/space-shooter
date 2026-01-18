@@ -30,7 +30,21 @@ public:
 		Tank,
 		BossBayle
 	};
+	enum class BossAttackType {
+		None,
+		VerticalShot,  // pociski w dó³
+		CrossShot,     // pociski w krzy¿
+		SpiralShot     // pociski wiruj¹ce
+	};
 private:
+
+	bool redCharging = false;
+	bool redDashing = false;
+	float redChargeTimer = 0.f;
+	sf::Vector2f redDashDir;
+	bool redReturning = false;  
+	sf::Vector2f targetPos;
+
 	Texture* texture;
 	Texture* projectileTexture;
 	Sprite sprite;
@@ -70,6 +84,14 @@ private:
 	float animTimer = 0.f;
 	float animSpeed = 0.15f;
 
+	BossAttackType currentAttack = BossAttackType::None;
+	bool isAttacking = false;      // czy Bayle jest w trakcie ataku
+	float attackTimer = 0.f;       // licznik dla aktualnego ataku
+	float attackCooldown = 3.f;    // losowy cooldown miêdzy atakami
+
+	Vector2f startPos;             // miejsce startowe Bayle'a (do powrotu po dash)
+
+
 
 public:
 
@@ -96,7 +118,10 @@ public:
 	//funkcje
 	void updateRotation(const Vector2f& targetPosition);
 	void takeDamage(int damage);
-	void Update(const sf::Vector2f& playerPos);
+	void Update(const sf::Vector2f& playerPos, float dt);
 	void Draw(RenderTarget& target);
 	void updateAnimation(float dt);
+	void handleVerticalShot(float dt, const sf::Vector2f& playerPos);
+	void handleCrossShot(float dt);
+	void handleSpiralShot(float dt);
 };

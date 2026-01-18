@@ -154,6 +154,11 @@ Enemy::Enemy(Texture* texture, Vector2u windowBounds,
             animRect.width / 2.f,
             animRect.height / 2.f
         );
+           this->startPos = position; // zapamiêtaj pozycjê startow¹
+        this->currentAttack = BossAttackType::None;
+        isAttacking = false;
+        this->attackTimer = 0.f;
+        this->attackCooldown = 3.f;
         break;
 
     }
@@ -165,6 +170,121 @@ Enemy::~Enemy()
 {
 
 }
+
+
+
+void Enemy::handleVerticalShot(float dt, const sf::Vector2f& playerPos)
+{
+    static float shotTimer = 0.f;
+    shotTimer += dt;
+
+    float shotInterval = 0.5f; // strza³ co pó³ sekundy
+    if (shotTimer >= shotInterval)
+    {
+        shotTimer = 0.f;
+
+        // Pozycja spawn pocisku — ze œrodka sprite, uwzglêdniaj¹c skalê
+        sf::Vector2f spawnPos = sprite.getPosition() +
+            sf::Vector2f(sprite.getGlobalBounds().width * 0.1f * sprite.getScale().x,
+                sprite.getGlobalBounds().height * sprite.getScale().y);
+
+
+        // Kierunek w stronê gracza
+        sf::Vector2f dir = playerPos - spawnPos;
+        float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
+        if (len != 0.f)
+            dir /= len; // normalizacja
+
+        // Prêdkoœæ pocisku — ³atwo zmieniæ
+        float projectileSpeed = 6.f;
+
+        // Skala pocisku — ³atwo zmieniæ
+        sf::Vector2f projectileScale(0.05f, 0.05f);
+
+        // Dodajemy pocisk do wektora
+        fires.emplace_back(projectileTexture, spawnPos, dir * projectileSpeed, projectileScale);
+    }
+
+    attackTimer += dt;
+    if (attackTimer >= 10.f)
+    {
+        attackTimer = 0.f;
+        isAttacking = false;
+        currentAttack = BossAttackType::None;
+    }
+}
+
+
+
+void Enemy::handleCrossShot(float dt)
+{
+    static float shotTimer = 0.f;
+    shotTimer += dt;
+
+    float shotInterval = 0.3f;
+    if (shotTimer >= shotInterval)
+    {
+        shotTimer = 0.f;
+
+        Vector2f spawnPos = sprite.getPosition();
+        Vector2f projectileScale(0.05f, 0.05f);
+
+        // 4 losowe kierunki
+        for (int i = 0; i < 4; i++)
+        {
+            float angle = static_cast<float>(rand() % 360) * 3.14159265f / 180.f;
+            Vector2f dir(std::cos(angle), std::sin(angle));
+            fires.emplace_back(projectileTexture, spawnPos, dir * 5.f, Vector2f(0.05f, 0.2f));
+        }
+    }
+
+    attackTimer += dt;
+    if (attackTimer >= 3.5f)
+    {
+        attackTimer = 0.f;
+        isAttacking = false;
+        currentAttack = BossAttackType::None;
+    }
+}
+
+void Enemy::handleSpiralShot(float dt)
+{
+    static float shotTimer = 0.f;
+    static float elapsed = 0.f; // do sinusoidy
+
+    shotTimer += dt;
+    float shotInterval = 0.1f;
+
+    if (shotTimer >= shotInterval)
+    {
+        shotTimer = 0.f;
+
+        Vector2f spawnPos = sprite.getPosition();
+        Vector2f projectileScale(0.05f, 0.05f);
+        float speed = 6.f;
+
+        // pociski lec¹ w dó³ ze sinusoidalnym przesuniêciem w X
+        float xOffset = std::sin(elapsed * 5.f) * 2.f;
+        Vector2f dir(xOffset, 1.f); // Y w dó³
+        float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
+        if (len != 0.f) dir /= len;
+
+        fires.emplace_back(projectileTexture, spawnPos, dir * speed, Vector2f(0.05f, 0.2f));
+
+        elapsed += 0.2f;
+    }
+
+    attackTimer += dt;
+    if (attackTimer >= 5.f)
+    {
+        attackTimer = 0.f;
+        isAttacking = false;
+        currentAttack = BossAttackType::None;
+    }
+}
+
+
+
 
 void Enemy::updateAnimation(float dt)
 {
@@ -212,7 +332,7 @@ void Enemy::updateRotation(const Vector2f& targetPosition)
 
 
 
-void Enemy::Update(const sf::Vector2f& playerPos)
+void Enemy::Update(const sf::Vector2f& playerPos, float dt)
 // Wypisuj pozycjê co klatkê (tymczasowo)
  //std::cout << "Enemy X: " << this->sprite.getPosition().x << " Y: " << this->sprite.getPosition().y << std::endl;
 {
@@ -363,8 +483,40 @@ void Enemy::Update(const sf::Vector2f& playerPos)
 
             this->sprite.setPosition(
                 this->startX + xOffset,
-                this->stopY + yOffset
-            );
+                this->stopY + yOffset);
+
+                this->attackTimer += dt;
+
+            // jeœli nie atakuje i min¹³ cooldown, wybierz losowy atak
+            if (!isAttacking && this->attackTimer >= this->attackCooldown)
+            {
+                int r = rand() % 3;
+                r = 0;
+                this->currentAttack = static_cast<BossAttackType>(r + 1); // +1 bo None = 0
+                isAttacking = true;
+                this->attackTimer = 0.f;
+
+                // losowy cooldown 3–5s
+                this->attackCooldown = 3.f + static_cast<float>(rand() % 3);
+            }
+
+            // wykonanie ataku
+            switch (this->currentAttack)
+            {
+            case Enemy::BossAttackType::VerticalShot:
+                handleVerticalShot(dt, playerPos);
+                break;
+            case Enemy::BossAttackType::CrossShot:
+                handleCrossShot(dt);
+                break;
+            case Enemy::BossAttackType::SpiralShot:
+                handleSpiralShot(dt);
+                break;
+            default:
+                break;
+            }
+
+           
         }
        
     }
