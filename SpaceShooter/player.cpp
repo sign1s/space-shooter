@@ -3,17 +3,29 @@
 #include <SFML/Audio.hpp>
 #include <Windows.h>
 
-enum controls { RIGHT = 0, LEFT, UP, DOWN, SHOOT }; 
+enum controls { RIGHT = 0, LEFT, UP, DOWN, SHOOT, DASH }; 
 
 Player::Player(const DragonProfile& profile, Texture* texture, Texture* fireTexture,
 	Vector2u windowBounds,
-	int RIGHT, int LEFT, int UP, int DOWN, int SHOOT)
+	int RIGHT, int LEFT, int UP, int DOWN, int SHOOT,int DASH)
 	:level(1), exp(0), expNext(60), 
 	hpMax(profile.hpMax), damage(profile.damage), damageMax(profile.damage + 2),
 	shootTimerMax(profile.shootTimerMax),
 	score(0), levelBonus(10), gold(0) //initiation list
 {
 	this->hp = this->hpMax;
+
+	// dash bar
+	dashCooldownMax = dashCooldown;
+
+	dashBar.setSize(Vector2f(100.f, 5.f));
+	dashBar.setFillColor(sf::Color::White);
+	dashBar.setPosition(sprite.getPosition().x, sprite.getPosition().y + sprite.getGlobalBounds().height + 5.f);
+
+	dashBarInside.setSize(Vector2f(100.f, 5.f));
+	dashBarInside.setFillColor(sf::Color::Yellow);
+	dashBarInside.setPosition(dashBar.getPosition());
+
 
 	//Textures and Sprites
 	this->texture = texture;
@@ -40,6 +52,11 @@ Player::Player(const DragonProfile& profile, Texture* texture, Texture* fireText
 	this->controls[controls::DOWN] = DOWN;
 	//SHOOT
 	this->controls[controls::SHOOT] = SHOOT;
+	//Dash
+	this->controls[5] = DASH;
+
+	for (int i = 0; i < 6; i++)
+		originalControls[i] = controls[i];
 
 }
 
@@ -47,6 +64,31 @@ Player::~Player()
 {
 
 }
+
+void Player::restoreControls()
+{
+	for (int ij = 0; ij < 6; ij++)
+		controls[ij] = originalControls[ij];
+}
+
+void Player::shuffleControls()
+{
+	std::vector<int> tempControls(originalControls, originalControls + 6); // teraz 6 klawiszy
+
+	// Fisher-Yates shuffle
+	for (int i = 5; i > 0; --i)
+	{
+		int j = rand() % (i + 1);
+		std::swap(tempControls[i], tempControls[j]);
+	}
+
+	for (int i = 0; i < 6; i++)
+		controls[i] = tempControls[i];
+
+	controlsShuffled = true;
+	shuffleTimer = 0.f;
+}
+
 
 void Player::Movement()
 {
@@ -88,8 +130,15 @@ void Player::updateWindowBoundsCollision(Vector2u windowBounds)
 //to
 void Player::takeDamage(int damage)
 {
+	if (isInvincible)
+		return;
+
 	this->hp -= damage;
 	dragonHitSound.play();
+
+	isInvincible = true;
+	invincibilityTimer = 0.f;
+
 	if (this->hp < 0)
 		this->hp = 0;
 }
@@ -121,6 +170,19 @@ void Player::setScore(int value)
 	this->score = value;
 }
 
+void Player::StartDash(const Vector2f& dir)
+{
+	if (!isDashing && dashCooldownTimer <= 0.f)
+	{
+		isDashing = true;
+		dashDirection = dir;
+		dashTimer = 0.f;
+		dashCooldownTimer = dashCooldown;
+		isInvincible = true;
+		invincibilityTimer = 0.f;
+	}
+}
+
 void Player::setLevel(int value)
 {
 	this->level = value;
@@ -135,22 +197,151 @@ void Player::UpdateStats()
 	this->damage = this->level;
 
 	this->hpMax = 1 + this->level * 5;
-	this->hp = this->hpMax;
+	this->hp = this->hp+2;
 
 	this->levelBonus = 10 * this->level;
 }
 
 void Player::Update(Vector2u windowBounds)
 {
+	float deltaTime = deltaClock.restart().asSeconds(); // czas od ostatniego restartu
+
+	if (isWraithEffectActive)
+	{
+		wraithEffectTimer += deltaTime;
+
+		// miganie na czarno
+		float blink = std::sin(wraithEffectTimer * 5.f); // wolniejsze miganie
+		int alpha = (blink > 0) ? 100 : 255;
+		sprite.setColor(sf::Color(0, 0, 0, alpha));
+
+		if (wraithEffectTimer >= wraithEffectDuration)
+		{
+			// koniec efektu
+			isWraithEffectActive = false;
+			sprite.setColor(sf::Color::White);
+			restoreControls(); // przywróæ klawisze
+		}
+	}
+
+	// --- Aktualizacja paska dash ---
+	float percent = 1.f - std::min(dashCooldownTimer / dashCooldownMax, 1.f); // 0..1
+	dashBarInside.setSize(Vector2f(100.f * percent, dashBarInside.getSize().y));
+
+	// ustawienie pozycji pod graczem (jeœli sprite siê porusza)
+	float barWidth = dashBar.getSize().x;
+	float spriteCenterX = sprite.getPosition().x + sprite.getGlobalBounds().width / 2.f;
+
+	dashBar.setPosition(spriteCenterX - barWidth / 2.f,
+		sprite.getPosition().y + sprite.getGlobalBounds().height + 5.f);
+
+	dashBarInside.setPosition(dashBar.getPosition());
+
+
+
+	if (controlsShuffled)
+	{
+		shuffleTimer += deltaClock.restart().asSeconds();
+		if (shuffleTimer >= shuffleDuration)
+		{
+			for (int i = 0; i < 6; i++)
+				controls[i] = originalControls[i];
+
+			controlsShuffled = false;
+		}
+	}
+
+
 	//Update shootTimer //pocisk
 	if (this->shootTimer < this->shootTimerMax)
 		this->shootTimer++;
+
+	if (dashCooldownTimer > 0.f)
+		dashCooldownTimer -= deltaTime;
 
 	//Update position //pocisk
 	this->playerCenter.x = sprite.getPosition().x + sprite.getGlobalBounds().width / 2.f;
 	this->playerCenter.y = sprite.getPosition().y;
 
-	this->Movement();
+	
+
+	
+
+	// --- Input Dash ---
+	static bool dashKeyHeld = false;
+	if (Keyboard::isKeyPressed(Keyboard::LShift))
+	{
+		if (!dashKeyHeld)
+		{
+			sf::Vector2f dashDir(0.f, 0.f);
+
+			if (Keyboard::isKeyPressed(Keyboard::Up))    dashDir.y -= 1.f;
+			if (Keyboard::isKeyPressed(Keyboard::Down))  dashDir.y += 1.f;
+			if (Keyboard::isKeyPressed(Keyboard::Left))  dashDir.x -= 1.f;
+			if (Keyboard::isKeyPressed(Keyboard::Right)) dashDir.x += 1.f;
+
+			if (dashDir.x != 0.f || dashDir.y != 0.f)
+			{
+				float len = std::sqrt(dashDir.x * dashDir.x + dashDir.y * dashDir.y);
+				dashDir /= len;
+
+				StartDash(dashDir); // w³¹cz dash i iframe
+			}
+
+			dashKeyHeld = true;
+		}
+	}
+	else
+	{
+		dashKeyHeld = false;
+	}
+
+	// --- W³aœciwy Dash ---
+	if (isDashing)
+	{
+		sprite.move(dashDirection * dashSpeed * deltaTime); // poruszamy gracza
+		dashTimer += deltaTime;
+
+		if (dashTimer >= dashTime)
+		{
+			isDashing = false;
+			dashTimer = 0.f;
+
+			// Krótki iframe po dash (opcjonalnie)
+			isInvincible = true;
+			invincibilityTimer = 0.f;
+		}
+	}
+	else
+	{
+		// Normalny ruch (WASD/strza³ki) dzia³a tylko, gdy nie dashujesz
+		Movement();
+	}
+
+	// --- I-frames po obra¿eniach ---
+	if (isInvincible)
+	{
+		invincibilityTimer += deltaTime;
+		if (invincibilityTimer >= invincibilityTime)
+		{
+			isInvincible = false;
+			invincibilityTimer = 0.f;
+		}
+
+		if (!getWraithEffectActive()) // u¿ywamy getter
+		{
+			int alpha = static_cast<int>(std::sin(invincibilityTimer * 40.f) * 127.f + 128.f);
+			sprite.setColor(sf::Color(255, 255, 255, alpha));
+		}
+	}
+	else if (!getWraithEffectActive())
+	{
+		sprite.setColor(sf::Color::White);
+	}
+
+
+
+
 
 	this->updateWindowBoundsCollision(windowBounds);
 
@@ -165,8 +356,6 @@ void Player::Update(Vector2u windowBounds)
 		else {
 			i++;
 		}
-
-
 	}
 }
 
@@ -178,5 +367,19 @@ void Player::Draw(RenderTarget& target)
 	}
 
 	target.draw(this->sprite);
+	target.draw(dashBar);
+	target.draw(dashBarInside);
+
+	sf::FloatRect bounds = sprite.getGlobalBounds();
+	sf::RectangleShape rect;
+	rect.setPosition(bounds.left, bounds.top);
+	rect.setSize({ bounds.width, bounds.height });
+	rect.setFillColor(sf::Color::Transparent);
+	rect.setOutlineColor(sf::Color::Green);
+	rect.setOutlineThickness(2.f);
+
+	target.draw(rect);
+
 }
+
 

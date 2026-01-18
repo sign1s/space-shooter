@@ -1,6 +1,23 @@
 #pragma once
 
 #include"fire.h"
+// Sta³e hitboxów (proporcje wzglêdem sprite)
+//h
+static constexpr float HARPY_HITBOX_SCALE_H = 0.05f;
+static constexpr float RAVEN_HITBOX_SCALE_H = 0.05f;
+static constexpr float TANK_HITBOX_SCALE_H = 0.25f;
+static constexpr float WRAITH_HITBOX_SCALE_H = 0.05f;
+static constexpr float Argus_HITBOX_SCALE_H = 0.05f;
+static constexpr float Bayle_HITBOX_SCALE_H = 0.8f;
+//w
+static constexpr float HARPY_HITBOX_SCALE_W = 0.05f;
+static constexpr float RAVEN_HITBOX_SCALE_W = 0.1f;
+static constexpr float TANK_HITBOX_SCALE_W = 0.3f;
+static constexpr float WRAITH_HITBOX_SCALE_W = 0.05f;
+static constexpr float Argus_HITBOX_SCALE_W = 0.05f;
+static constexpr float Bayle_HITBOX_SCALE_W = 0.35f;
+
+
 class Enemy
 {
 public:
@@ -8,12 +25,17 @@ public:
 	{
 		Harpy,
 		Raven,
-		Argus
+		Argus,
+		Wraith,
+		Tank,
+		BossBayle
 	};
 private:
 	Texture* texture;
 	Texture* projectileTexture;
 	Sprite sprite;
+
+	sf::RectangleShape hitbox;
 
 	Vector2f direction;
 	float speed;
@@ -40,6 +62,15 @@ private:
 	bool reachedStopY = false;
 
 	std::vector<Fire> fires;  // pociski wroga
+
+	// Animacja Bayle'a'
+	sf::IntRect animRect;
+	int currentFrame = 0;
+	int frameCount = 4;
+	float animTimer = 0.f;
+	float animSpeed = 0.15f;
+
+
 public:
 
 	Enemy(Texture* texture, Vector2u windowBounds,
@@ -58,10 +89,14 @@ public:
 	inline const FloatRect getGlobalBounds()const { return this->sprite.getGlobalBounds(); }
 	inline const Vector2f getPosition()const { return this->sprite.getPosition(); }
 	EnemyType getEnemyType() const { return this->type; };
+	const sf::RectangleShape& getHitbox() const { return hitbox; }
+	
 
 	std::vector<Fire>& getFires() { return fires; }
 	//funkcje
+	void updateRotation(const Vector2f& targetPosition);
 	void takeDamage(int damage);
 	void Update(const sf::Vector2f& playerPos);
 	void Draw(RenderTarget& target);
+	void updateAnimation(float dt);
 };

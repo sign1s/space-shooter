@@ -3,6 +3,7 @@
 #include "player.h"
 #include "enemy.h"
 #include <SFML/Audio.hpp>
+#include <SFML/System.hpp>
 
 using namespace sf;
 
@@ -11,6 +12,7 @@ class Game
 
 private:
 	RenderWindow* window;
+	sf::Clock deltaClock;
 
 	//background
 	Texture backgroundTexture;
@@ -51,6 +53,8 @@ private:
 	std::vector<Enemy> enemiesSaved;
 	int enemySpawnTimer;
 	int enemySpawnTimerMax;
+
+
 	//Enemy* enemy01;
 
 	//tekstury przeciwnikow
@@ -58,9 +62,30 @@ private:
 	Texture enemy01Texture;
 	Texture enemyRavenTexture;
 	Texture enemyArgusTexture;
+	Texture enemyWraithTexture;
+	Texture enemyTankTexture;
+	Texture enemyBayleTexture;
+
+
+	bool showHitboxes = true;
+
+	// licznik efektu Wraitha
+	int wraithFogTimer = 3.f;
+	float wraithBlinkTime = 0.f;
 
 	//waluta
 	int totalGold;
+
+	//boss kontrolki
+	bool bossReadyToSpawn = false;   // czy Bayle mo¿e siê pojawiæ
+	bool bossSpawned = false;        // czy Bayle ju¿ siê pojawi³
+	Enemy* bayle = nullptr;          // wskaŸnik na bossa
+	sf::Clock gameClock;             // licznik czasu gry
+	bool normalEnemiesSpawnEnabled = true; // kontrola respów zwyk³ych wrogów
+	bool bayleSpawned = false;
+	float gameTimer = 0.f; // licznik czasu gry w sekundach
+	float enemyRespawnEnabled = true;
+
 
 public:
 	Game(RenderWindow* window, const DragonProfile& choosenDragon);
@@ -69,6 +94,7 @@ public:
 	//pocisk
 	Texture fireTexture;
 	Texture feather_missileTexture;
+	Texture wraithMissile;
 
 	//player enemy collision
 	void CheckPlayerEnemyCollision();

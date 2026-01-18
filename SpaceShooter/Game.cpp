@@ -1,6 +1,7 @@
 #include "Game.h"
 #include<iostream>
 #include <Windows.h>
+#include <SFML/System.hpp>
 //#include <SFML/Audio.hpp>
 #include <filesystem>
 Game::Game(RenderWindow* window, const DragonProfile& choosenDragon):totalGold(0)
@@ -42,13 +43,28 @@ Game::Game(RenderWindow* window, const DragonProfile& choosenDragon):totalGold(0
 	{
 		MessageBoxA(nullptr, "NIE ZALADOWANO TEKSTURY", "BLAD", MB_OK);
 	}
-
+	//kula ognia
 	this->fireTexture.loadFromFile("Textures/bullet/fire_prev.png");
+	//pióra
 	this->feather_missileTexture.loadFromFile("Textures/bullet/feather_missile.png");
+	//pocisk widma
+	this->wraithMissile.loadFromFile("Textures/bullet/wraithMissile.png");
 
 	this->enemy01Texture.loadFromFile("Textures/enemies/Harpy.png");
 	this->enemyRavenTexture.loadFromFile("Textures/enemies/raven.png");
 	this->enemyArgusTexture.loadFromFile("Textures/enemies/argus.png");
+
+	if (!enemyTankTexture.loadFromFile("Textures/enemies/Tank.png"))
+		MessageBoxA(nullptr, "Nie zaladowano tekstury Tanka", "BLAD", MB_OK);
+	if (!enemyWraithTexture.loadFromFile("Textures/enemies/wraith.png"))
+		MessageBoxA(nullptr, "Nie zaladowano tekstury Wraitha", "BLAD", MB_OK);
+
+
+	//bosik
+	if (!enemyBayleTexture.loadFromFile("Textures/enemies/bossBayle_anim.png"))
+	{
+		MessageBoxA(nullptr, "Nie zaladowano Bayle", "BLAD", MB_OK);
+	}
 
 
 
@@ -85,7 +101,7 @@ Game::Game(RenderWindow* window, const DragonProfile& choosenDragon):totalGold(0
 		Enemy::EnemyType::Harpy,
 		&feather_missileTexture));
 
-	this->enemySpawnTimerMax = 150;
+	this->enemySpawnTimerMax = 150;// spawner
 	this->enemySpawnTimer = this->enemySpawnTimerMax;
 
 
@@ -227,6 +243,20 @@ void Game::CombatUpdate()
 						this->totalGold += 1;
 						player->addGold(1);
 					}
+					else if (enemies[j].getEnemyType() == Enemy::EnemyType::Tank)
+					{
+						player->addEXP(30);
+						player->addScore(150);
+						this->totalGold += 1;
+						player->addGold(1);
+					}
+					else if (enemies[j].getEnemyType() == Enemy::EnemyType::Wraith)
+					{
+						player->addEXP(30);
+						player->addScore(150);
+						this->totalGold += 1;
+						player->addGold(1);
+					}
 
 					//sprawdzam czy gracz osiagnal nowy poziom
 					if (player->getEXP() >= player->getEXPnext())
@@ -259,13 +289,22 @@ void Game::CheckPlayerEnemyCollision()
 {
 	for (size_t i = 0; i < enemies.size(); )
 	{
-		if (player->getGlobalBounds().intersects(enemies[i].getGlobalBounds()))
+		if (player->getGlobalBounds().intersects(enemies[i].getHitbox().getGlobalBounds()))
 		{
 			// gracz dostaje obra¿enia
 			player->takeDamage(1);
 
 			// wróg znika po zderzeniu
-			enemies.erase(enemies.begin() + i);
+			if (enemies[i].getEnemyType() != Enemy::EnemyType::BossBayle)
+			{
+				enemies.erase(enemies.begin() + i);
+			}
+			else
+			{
+				enemies[i].takeDamage(1);
+				i++;
+			}
+
 		}
 		else
 		{
@@ -275,24 +314,37 @@ void Game::CheckPlayerEnemyCollision()
 }
 void Game::CheckEnemyFiresCollision()
 {
-	for (auto& e : enemies) // dla ka¿dego wroga
 	{
-		auto& enemyFires = e.getFires();
-		for (size_t i = 0; i < enemyFires.size(); )
-		{
-			if (player->getGlobalBounds().intersects(enemyFires[i].getGlobalBounds()))
-			{
-				// Gracz dostaje obra¿enia
-				player->takeDamage(enemyFires[i].getDamage());
+		auto& playerFires = player->getFires();
 
-				// Usuñ pocisk
-				enemyFires.erase(enemyFires.begin() + i);
-			}
-			else
+		for (auto& e : enemies) // dla ka¿dego wroga
+		{
+			auto& enemyFires = e.getFires();
+			for (size_t i = 0; i < enemyFires.size(); )
 			{
-				i++;
+				if (player->getGlobalBounds().intersects(enemyFires[i].getGlobalBounds()))
+				{
+					// Gracz dostaje obra¿enia
+					player->takeDamage(enemyFires[i].getDamage());
+
+					// Specjalny efekt Wraitha
+					if (e.getEnemyType() == Enemy::EnemyType::Wraith)
+					{
+						player->shuffleControls();      // losowe klawisze
+						player->startWraithEffect();    // w³¹cz efekt migania
+					}
+
+
+					// Usuñ pocisk
+					enemyFires.erase(enemyFires.begin() + i);
+				}
+				else
+				{
+					i++;
+				}
 			}
 		}
+
 	}
 }
 void Game::CheckProjectileCollisions()
@@ -375,77 +427,160 @@ void Game::Update()
 	if (this->enemySpawnTimer < this->enemySpawnTimerMax)
 		this->enemySpawnTimer++;
 
-	//spawn enemies
-
-	if (this->enemySpawnTimer >= this->enemySpawnTimerMax)
+	//dashujemy
+	Vector2f dashDir(0.f, 0.f);
+	if (Keyboard::isKeyPressed(Keyboard::LShift))
 	{
-		// Losujemy typ wroga
-		Enemy::EnemyType type;
-		int r = rand() % 3; // 0=Harpy, 1=Raven, 2=Argus
-		switch (r)
-		{
-		case 0: type = Enemy::EnemyType::Harpy; break;
-		case 1: type = Enemy::EnemyType::Raven; break;
-		case 2: type = Enemy::EnemyType::Argus; break;
-		}
+		// np. kierunek w zale¿noœci od W,A,S,D
+		if (Keyboard::isKeyPressed(Keyboard::Up)) dashDir.y -= 1.f;
+		if (Keyboard::isKeyPressed(Keyboard::Down)) dashDir.y += 1.f;
+		if (Keyboard::isKeyPressed(Keyboard::Left)) dashDir.x -= 1.f;
+		if (Keyboard::isKeyPressed(Keyboard::Right)) dashDir.x += 1.f;
 
+		// normalizacja
+		float len = std::sqrt(dashDir.x * dashDir.x + dashDir.y * dashDir.y);
+		if (len != 0.f) dashDir /= len;
 
-
-
-
-
-		Texture* tex = nullptr;
-		if (type == Enemy::EnemyType::Argus)
-			tex = &enemyArgusTexture;
-		else if (type == Enemy::EnemyType::Raven)
-			tex = &enemyRavenTexture;
-		else if (type == Enemy::EnemyType::Harpy)
-			tex = &enemy01Texture;
-
-		if (!tex)
-			return; // lub continue w pêtli spawn
-
-		Vector2f spawnPos;
-		float halfWidth = tex->getSize().x * 0.1f / 2.f; // przeskalowana po³owa szerokoœci sprite
-		spawnPos.x = halfWidth + static_cast<float>(rand() % (window->getSize().x - static_cast<int>(halfWidth * 2)));
-		spawnPos.y = 0.f;
-		Vector2f dir(0.f, 1.f);
-
-		if (type == Enemy::EnemyType::Raven)
-		{
-			dir = player->getPosition() - spawnPos;
-			float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
-			if (len != 0.f) dir /= len;
-		}
-
-		Vector2f projectileScale(0.1f, 0.2f); // np. pióro Harpy jest wê¿sze i d³u¿sze
-
-		Texture* texProjectile = nullptr;
-		Vector2f projectileSpeed(0.f, 10.f); // prêdkoœæ pocisku w dó³
-		if (type == Enemy::EnemyType::Harpy)
-		{
-			texProjectile = &feather_missileTexture;
-			projectileScale = Vector2f(0.05f, 0.2f);
-			projectileSpeed = Vector2f(0.f, 5.f);
-		}
-		else
-			texProjectile = nullptr;
-
-		this->enemies.emplace_back(
-			tex,                   // tekstura wroga
-			window->getSize(),     // bounds
-			spawnPos,              // pozycja startowa
-			dir,                   // kierunek
-			Vector2f(0.1f, 0.1f), // skala
-			type,                  // typ
-			texProjectile,         // tekstura pocisku
-			2, 3, 1                // hpMax, damageMax, damageMin
-		);
-
-		this->enemySpawnTimer = 0;
+		player->StartDash(dashDir);
 	}
 
 
+	//spawn enemies
+	gameTimer += 1.f / 60.f; // ka¿da klatka = 1/60 sekundy
+
+	// --- Wy³¹czamy resp zwyk³ych przeciwników po 3 minutach ---
+	if (gameTimer >= 20.f) {
+		normalEnemiesSpawnEnabled = false;
+	}
+
+	// --- Sprawdzenie, czy wszyscy zwykli przeciwnicy pokonani ---
+	bool allEnemiesDead = true;
+	for (auto& e : enemies) {
+		if (e.getEnemyType() != Enemy::EnemyType::BossBayle && !e.isDead()) {
+			allEnemiesDead = false;
+			break;
+		}
+	}
+
+	// --- Spawn Bayle’a tylko raz ---
+	if (!bayleSpawned && gameTimer >= 20.f && !normalEnemiesSpawnEnabled && allEnemiesDead) {
+		bayleSpawned = true;
+
+		sf::Vector2f spawnPos(window->getSize().x / 2.f, -200.f); // nad ekranem
+		sf::Vector2f direction(0.f, 1.f); // ruch w dó³
+
+		enemies.emplace_back(
+			&enemyBayleTexture,
+			window->getSize(),
+			spawnPos,
+			direction,
+			sf::Vector2f(2.f, 2.f),      // skala sprite
+			Enemy::EnemyType::BossBayle
+		);
+	}
+
+	// Aktualizacja Bayle'a
+	if (bayleSpawned && bayle)
+	{
+		enemies.back().Update(player->getPosition());
+
+
+		if (bayle->isDead())
+		{
+			delete bayle;
+			bayle = nullptr;
+			bayleSpawned = false;
+			bossReadyToSpawn = false;
+			normalEnemiesSpawnEnabled = true; // opcjonalnie w³¹czamy resp zwyk³ych wrogów
+		}
+	}
+
+	// Spawn zwyk³ych wrogów
+	if (normalEnemiesSpawnEnabled)
+	{
+		if (this->enemySpawnTimer >= this->enemySpawnTimerMax)
+		{
+			// Losujemy typ wroga
+
+			Enemy::EnemyType type;
+			int r = rand() % 100; // 0=Harpy, 1=Raven, 2=Argus, 3=Wraith,4=Tank
+
+			if (r < 20) type = Enemy::EnemyType::Harpy;//20%
+			else if (r >= 20 && r < 55) type = Enemy::EnemyType::Raven;//35%
+			else if (r >= 55 && r < 85) type = Enemy::EnemyType::Argus;//30%
+			else if (r >= 85 && r < 90) type = Enemy::EnemyType::Wraith;//5%
+			else if (r >= 90 && r < 100) type = Enemy::EnemyType::Tank;//10%
+
+
+
+
+
+
+
+			Texture* tex = nullptr;
+			if (type == Enemy::EnemyType::Argus)
+				tex = &enemyArgusTexture;
+			else if (type == Enemy::EnemyType::Raven)
+				tex = &enemyRavenTexture;
+			else if (type == Enemy::EnemyType::Tank)
+				tex = &enemyTankTexture;
+			else if (type == Enemy::EnemyType::Harpy)
+				tex = &enemy01Texture;
+			else if (type == Enemy::EnemyType::Wraith)
+				tex = &enemyWraithTexture;
+
+			if (!tex)
+				return; // lub continue w pêtli spawn
+
+			Vector2f spawnPos;
+			float halfWidth = tex->getSize().x * 0.1f / 2.f; // przeskalowana po³owa szerokoœci sprite
+			spawnPos.x = halfWidth + static_cast<float>(rand() % (window->getSize().x - static_cast<int>(halfWidth * 2)));
+			spawnPos.y = 0.f;
+			Vector2f dir(0.f, 1.f);
+
+			if (type == Enemy::EnemyType::Raven)
+			{
+				dir = player->getPosition() - spawnPos;
+				float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
+				if (len != 0.f) dir /= len;
+			}
+
+			Vector2f projectileScale(0.1f, 0.2f); // np. pióro Harpy jest wê¿sze i d³u¿sze
+
+			Texture* texProjectile = nullptr;
+			Vector2f projectileSpeed(0.f, 10.f); // prêdkoœæ pocisku w dó³
+			if (type == Enemy::EnemyType::Harpy)
+			{
+				texProjectile = &feather_missileTexture;
+				projectileScale = Vector2f(0.05f, 0.2f);
+				projectileSpeed = Vector2f(0.f, 5.f);
+			}
+			else if (type == Enemy::EnemyType::Wraith)
+			{
+				texProjectile = &wraithMissile;
+				projectileScale = Vector2f(0.05f, 0.2f);
+				projectileSpeed = Vector2f(0.f, 5.f);
+			}
+			else
+				texProjectile = nullptr;
+
+			this->enemies.emplace_back(
+				tex,                   // tekstura wroga
+				window->getSize(),     // bounds
+				spawnPos,              // pozycja startowa
+				dir,                   // kierunek
+				Vector2f(0.1f, 0.1f), // skala
+				type,                  // typ
+				texProjectile,         // tekstura pocisku
+				2, 3, 1                // hpMax, damageMax, damageMin
+			);
+
+			this->enemySpawnTimer = 0;
+		}
+	}
+
+	
+	
 
 	//update players
 	//tu nie ma tej petli bo ona jest do kilku graczy
@@ -468,14 +603,41 @@ void Game::showText(std::string message) {
 	this->textTimer = this->textTimerMax;
 }
 
-void Game::updateNotifications() {
-	if (this->textTimer > 0.f) {
+void Game::updateNotifications()
+{
+	if (this->textTimer > 0.f)
+	{
 		this->textTimer -= 1.f;
 	}
 
 	int alpha = static_cast<int>((this->textTimer / this->textTimerMax) * 255);
 	this->infoText.setFillColor(sf::Color(255, 255, 255, alpha));
 	this->infoText.setOutlineColor(sf::Color(0, 0, 0, alpha));
+
+	// Efekt Wraith: miganie gracza na czarno
+	float deltaTime = deltaClock.restart().asSeconds(); // czas od ostatniego update
+
+	if (wraithFogTimer > 0.f)
+	{
+		wraithFogTimer -= deltaTime;
+		player->setWraithEffectActive(true);
+
+		// Miganie na czarno
+		wraithBlinkTime += deltaTime;
+		float blink = std::sin(wraithBlinkTime * 5.f); // wolniejsze miganie
+		int colorAlpha = (blink > 0) ? 100 : 255;
+		player->getSprite().setColor(sf::Color(0, 0, 0, colorAlpha));
+	}
+	else if (player->getWraithEffectActive()) // efekt siê koñczy
+	{
+		player->setWraithEffectActive(false);
+		wraithBlinkTime = 0.f;
+		player->getSprite().setColor(sf::Color::White);
+		player->restoreControls(); // przywróæ klawisze
+	}
+
+
+
 }
 
 void Game::drawNotifications() {
