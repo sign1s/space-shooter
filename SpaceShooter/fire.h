@@ -17,7 +17,8 @@ private:
 	int damage;
 
 public:
-	Fire(Texture* texture, Vector2f position, Vector2f maxVelocity = Vector2f(0.f, -10.f), Vector2f scale = Vector2f(0.15f, 0.15f));
+	Fire(Texture* texture, Vector2f position, Vector2f maxVelocity = Vector2f(0.f, -10.f), 
+Vector2f scale = Vector2f(0.15f, 0.15f), int damage = 1);
 	//virtual ~Fire();
 	
 
@@ -31,4 +32,6 @@ public:
 	void movement();
 	void update();
 	void draw(RenderTarget& target);
+	void setColor(const sf::Color& color) { sprite.setColor(color); }
+	sf::Sprite& getSprite() { return sprite; }
 };

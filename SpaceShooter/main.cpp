@@ -19,7 +19,10 @@ int main()
 	enum class State { MENU, PLAYING, SHOPPING, PAUSE, GAMEOVER, PLAYERNAME, LOADFILE, SAVEFILE };
 	State currentState = State::MENU;
 
-	RenderWindow window(VideoMode({ 1920,1080 }), "dragon shooter!");
+	//RenderWindow window(VideoMode({ 1920,1080 }), "dragon shooter!");
+
+	sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
+	RenderWindow window(desktop, "dragon shooter!", sf::Style::Fullscreen);
 
 	//main menu
 	Main_menu Menu(window.getSize().x, window.getSize().y);
@@ -66,7 +69,6 @@ int main()
 						int x = Menu.mainMenuPressed();
 						if (x == 0) {
 							currentState = State::PLAYERNAME;
-							//currentState = State::PLAYING;
 						}
 						if (x == 2) currentState = State::SHOPPING;
 						if (x == 3) window.close();
@@ -82,9 +84,12 @@ int main()
 
 				if (event.type == Event::KeyPressed && event.key.code == Keyboard::Enter)
 				{
-					const DragonProfile& activeDragon = shop.getDragon(shop.getEquippedIndex());//Dragons[shop.getEquippedIndex()];
-					game.Reset(activeDragon);
-					currentState = State::PLAYING;
+					if (Name.getName() != "")
+					{
+						const DragonProfile& activeDragon = shop.getDragon(shop.getEquippedIndex());//Dragons[shop.getEquippedIndex()];
+						game.Reset(activeDragon);
+						currentState = State::PLAYING;
+					}
 				}
 
 				if (event.type == Event::KeyPressed && event.key.code == Keyboard::Escape)
@@ -143,21 +148,26 @@ int main()
 						int x = file.slotPressed();
 
 						std::string tempPlayerName;
-						int tempLevel, tempScore, tempDragonIndex;//zmienne pomocnicze
+						int tempLevel, tempHP, tempEXP, tempGOLD,
+							tempScore, tempDragonIndex;//zmienne pomocnicze
 
 						if (file.LoadFile(x, tempPlayerName,
-							tempLevel, tempScore, tempDragonIndex))
+							tempLevel, tempHP, tempEXP, tempGOLD, tempScore, tempDragonIndex))
 						{
 							game.Reset(shop.getSelectedDragon());
 
 							Player* pointer = game.getPlayer();//pobieram wskaznik do gracza
 							pointer->setLevel(tempLevel);
+							pointer->setHP(tempHP);
+							pointer->setEXP(tempEXP);
+							pointer->setGOLD(tempGOLD);
 							pointer->setScore(tempScore);
+							Name.setName(tempPlayerName);
 
 							shop.equipDragon(tempDragonIndex);
 
 
-							currentState = State::PLAYERNAME;
+							currentState = State::PLAYING;
 						}
 
 						break;
@@ -208,13 +218,16 @@ int main()
 
 							std::string currentName = Name.getName();
 							int currentLevel = pointer->getLevel();
+							int currentHP = pointer->getHP();
+							int currentEXP = pointer->getEXP();
+							int currentGOLD = pointer->getGold();
 							int currentScore = pointer->getScore();
 							int currentDragon = shop.getEquippedIndex();
 
-							file.SaveFile(x, currentName, currentLevel, currentScore, currentDragon);
+							file.SaveFile(x, currentName, currentLevel, currentHP, currentEXP, currentGOLD, currentScore, currentDragon);
 							file.UpdateSlotUI();
 
-							currentState = State::MENU;//do PAUZA?
+							currentState = State::PAUSE;
 							break;
 						}
 						}

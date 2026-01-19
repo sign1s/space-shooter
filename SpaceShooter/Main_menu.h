@@ -1,5 +1,6 @@
 #pragma once
 
+#include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
 #include<iostream>
 
@@ -14,6 +15,11 @@ public:
 	void draw(RenderWindow& window);
 	void moveUp();
 	void moveDown();
+
+
+	sf::SoundBuffer smokBuffer;
+	sf::Sound smokSound;
+
 
 	int mainMenuPressed() {
 		return mainMenuSelected;

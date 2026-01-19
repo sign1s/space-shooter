@@ -32,6 +32,9 @@ private:
 	sf::SoundBuffer dragonHitBuffer;
 	sf::Sound dragonHitSound;
 
+	sf::SoundBuffer shootBuffer;
+	sf::Sound shootSound;
+
 	int controls[6];//left,right,up,down,shoot,dash
 	int originalControls[6];
 
@@ -57,6 +60,8 @@ private:
 
 	int levelBonus;//dodatkowe punkty do score z osiagnieciem nowego levelu
 
+	float movementSpeed;
+
 	// --- Dash ---
 	bool isDashing = false;
 	float dashSpeed = 2500.f;          // prêdkoœæ podczas dash
@@ -73,11 +78,32 @@ private:
 
 	bool controlsShuffled = false;
 	float shuffleTimer = 0.f;
-	float shuffleDuration = 2.f;
+	float shuffleDuration = 3.f;
 
 	float wraithEffectTimer = 0.f;      // czas trwania efektu
 	float wraithEffectDuration = 3.f;   // 3 sekundy
 	bool isWraithEffectActive = false; // blokada resetu koloru podczas efektu
+
+	float fireRateMultiplier = 1.f;
+
+	// Movement speed
+	float baseSpeed = 10.f;
+	float speedMultiplier = 1.f;
+
+	// Lightning movement boost
+	bool lightningActive = false;
+	int lightningStacks = 0;
+	float lightningTimer = 0.f;
+	float lightningDurationPerStack = 300.f; // 5sekund
+	//Sword
+	bool tripleShotActive = false;
+	float tripleShotTimer = 0.f;
+	float tripleShotDuration = 300.f; // 5 sekund 
+
+	// Piercing
+	bool piercingActive = false;
+	float piercingTimer = 0.f;
+	float piercingDuration = 300.f;
 
 public:
 
@@ -152,11 +178,20 @@ public:
 	void setWraithEffectActive(bool active) { isWraithEffectActive = active; }
 	bool getWraithEffectActive() const { return isWraithEffectActive; }
 
+	void addHP(int value);
+	void enableTripleShot();
+	void enablePiercing();
+	void addLightning();
+	bool isPiercingActive() const { return piercingActive; }
 
 	//update z levelami
 	void setLevel(int value);
+	void setHP(int value);
+	void setEXP(int value);
+	void setGOLD(int value);
 	void setScore(int value);
 	void UpdateStats();
+	void LevelUp();
 
 };
 

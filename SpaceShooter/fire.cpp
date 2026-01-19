@@ -2,9 +2,10 @@
 #include "fire.h"
 
 
-Fire::Fire(Texture* texture, Vector2f position, Vector2f maxVelocity,Vector2f scale) {
+Fire::Fire(Texture* texture, Vector2f position, Vector2f maxVelocity,
+	Vector2f scale, int damage) {
 
-	this->damage = 1;
+	this->damage = damage;
 	this->texture = texture;
 	this->sprite.setTexture(*this->texture);
 	this->maxVelocity = maxVelocity;

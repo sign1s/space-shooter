@@ -44,16 +44,17 @@ void PlayerName::draw(RenderWindow& window)
 	window.draw(this->nameText);
 }
 
+void PlayerName::setName(String name)
+{
+	this->playerName = name;
+	this->nameText.setString(name);
+}
+
 
 void PlayerName::enterPlayerName(const Event& event)
 {
 	if (event.type == Event::TextEntered)
 	{
-		if (playerName.getSize() > 16)//limit s³ów
-		{
-			return;
-		}
-
 		if (event.text.unicode == 8)//obsluguje backspace
 		{
 			if (playerName.getSize() >= 1)
@@ -63,14 +64,20 @@ void PlayerName::enterPlayerName(const Event& event)
 			}
 		}
 
-		else if (event.text.unicode == 32)//obsluguje spacje
-		{
-			playerName += ' ';
-		}
-
 		else if (event.text.unicode > 32 && event.text.unicode < 126)
 		{
-			playerName += event.text.unicode;
+			if (playerName.getSize() > 15)//limit liter
+			{
+				return;
+			}
+			else
+			{
+				char letter = static_cast<char>(event.text.unicode);
+
+				playerName += static_cast<char>(std::toupper(static_cast<unsigned char>(letter)));
+				//zmieniam male litery na duze
+			}
+
 		}
 	}
 

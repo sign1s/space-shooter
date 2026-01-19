@@ -38,12 +38,6 @@ public:
 	};
 private:
 
-	bool redCharging = false;
-	bool redDashing = false;
-	float redChargeTimer = 0.f;
-	sf::Vector2f redDashDir;
-	bool redReturning = false;  
-	sf::Vector2f targetPos;
 
 	Texture* texture;
 	Texture* projectileTexture;
@@ -104,7 +98,7 @@ public:
 	virtual ~Enemy();
 
 
-	inline const int getDamage()const { return rand() % this->damageMax + this->damageMin; }
+	inline const int getDamage()const { return this->damageMax; }
 	inline const int getHP()const { return this->hp; }
 	inline const int getHPMax()const { return this->hpMax; }
 	inline const bool isDead()const { return this->hp <= 0; }
@@ -112,7 +106,11 @@ public:
 	inline const Vector2f getPosition()const { return this->sprite.getPosition(); }
 	EnemyType getEnemyType() const { return this->type; };
 	const sf::RectangleShape& getHitbox() const { return hitbox; }
-	
+	void setHP(int newHP) { this->hp = newHP; }
+	void setHPMax(int newHPMax) { this->hpMax = newHPMax; }
+	void setDamageMax(int newDMG) { this->damageMax = newDMG; }
+	void setDamageMin(int newDMG) { this->damageMin = newDMG; }
+
 
 	std::vector<Fire>& getFires() { return fires; }
 	//funkcje

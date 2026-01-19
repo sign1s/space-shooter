@@ -70,6 +70,12 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -100,7 +106,7 @@ exit /b 0
       <PreprocessorDefinitions>WIN32;SFML_STATIC</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\Users\Jeremi\Desktop\gra\SpaceShooter\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\natal\OneDrive\Pulpit\SFML-2.6.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -151,6 +157,7 @@ xcopy "$(SolutionDir)Assets" "$(SolutionDir)SpaceShooter\Assets" /E /I /Y
     <ClCompile Include="player.cpp" />
     <ClCompile Include="FileManager.cpp" />
     <ClCompile Include="PlayerName.cpp" />
+    <ClCompile Include="PowerUp.cpp" />
     <ClCompile Include="Shop.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -163,6 +170,7 @@ xcopy "$(SolutionDir)Assets" "$(SolutionDir)SpaceShooter\Assets" /E /I /Y
     <ClInclude Include="PauseMenu.h" />
     <ClInclude Include="player.h" />
     <ClInclude Include="PlayerName.h" />
+    <ClInclude Include="PowerUp.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="FileManager.h" />
     <ClInclude Include="Shop.h" />

@@ -2,18 +2,20 @@
 #include <vector>   
 #include <SFML/Audio.hpp>
 #include <Windows.h>
-
+#
 enum controls { RIGHT = 0, LEFT, UP, DOWN, SHOOT, DASH }; 
 
 Player::Player(const DragonProfile& profile, Texture* texture, Texture* fireTexture,
 	Vector2u windowBounds,
 	int RIGHT, int LEFT, int UP, int DOWN, int SHOOT,int DASH)
 	:level(1), exp(0), expNext(60), 
-	hpMax(profile.hpMax), damage(profile.damage), damageMax(profile.damage + 2),
+	hpMax(profile.hpMax), damage(profile.damage), damageMax(profile.damage),
 	shootTimerMax(profile.shootTimerMax),
 	score(0), levelBonus(10), gold(0) //initiation list
 {
 	this->hp = this->hpMax;
+
+	this->movementSpeed = profile.speed;
 
 	// dash bar
 	dashCooldownMax = dashCooldown;
@@ -37,7 +39,10 @@ Player::Player(const DragonProfile& profile, Texture* texture, Texture* fireText
 		MessageBoxA(nullptr, "Nie zaladowano dzwieku trafienia smoka", "BLAD", MB_OK);
 	dragonHitSound.setBuffer(dragonHitBuffer);
 
-	this->sprite.setScale(0.15f, 0.15f); 
+	shootBuffer.loadFromFile("Sounds/shootSound.wav");
+	shootSound.setBuffer(shootBuffer);
+
+	this->sprite.setScale(profile.scale, profile.scale);
 	this->sprite.setPosition(Vector2f((windowBounds.x - sprite.getGlobalBounds().width) / 2.f,
 		windowBounds.y - sprite.getGlobalBounds().height));
 
@@ -92,23 +97,38 @@ void Player::shuffleControls()
 
 void Player::Movement()
 {
-	if (Keyboard::isKeyPressed(Keyboard::Key(this->controls[controls::RIGHT])))
-		this->sprite.move(10.0f, 0.0f);
-
-	if (Keyboard::isKeyPressed(Keyboard::Key(this->controls[controls::LEFT])))
-		this->sprite.move(-10.0f, 0.0f);
-
-	if (Keyboard::isKeyPressed(Keyboard::Key(this->controls[controls::UP])))
-		this->sprite.move(0.0f, -10.0f);
-
-	if (Keyboard::isKeyPressed(Keyboard::Key(this->controls[controls::DOWN])))
-		this->sprite.move(0.0f, 10.0f);
+	if (Keyboard::isKeyPressed(Keyboard::Key(this->controls[RIGHT])))
+		sprite.move(this->movementSpeed * speedMultiplier, 0.f);
+	if (Keyboard::isKeyPressed(Keyboard::Key(this->controls[LEFT])))
+		sprite.move(-this->movementSpeed * speedMultiplier, 0.f);
+	if (Keyboard::isKeyPressed(Keyboard::Key(this->controls[UP])))
+		sprite.move(0.f, -this->movementSpeed * speedMultiplier);
+	if (Keyboard::isKeyPressed(Keyboard::Key(this->controls[DOWN])))
+		sprite.move(0.f, this->movementSpeed * speedMultiplier);
 
 	//SHOOT
-	if (Keyboard::isKeyPressed(Keyboard::Key(this->controls[controls::SHOOT]))
-		&& this->shootTimer >= this->shootTimerMax) {
-		this->fires.push_back(Fire(fireTexture, this->playerCenter));
-		this->shootTimer = 0; // Reset timer!
+	int shots = tripleShotActive ? 3 : 1;
+
+	if (Keyboard::isKeyPressed(Keyboard::Key(this->controls[SHOOT])) &&
+		shootTimer >= shootTimerMax)
+	{
+		shootSound.play();
+		for (int i = 0; i < shots; i++)
+		{
+			float offsetX = 0.f;
+			if (shots > 1)
+				offsetX = (i - (shots - 1) / 2.f) * 5.f;
+
+			fires.emplace_back(
+				fireTexture,
+				playerCenter,
+				Vector2f(offsetX, -10.f),
+				Vector2f(0.15f, 0.15f),
+				damageMax
+			);
+			fires.back().setColor(piercingActive ? sf::Color::Red : sf::Color::White);
+		}
+		shootTimer = 0.f;
 	}
 
 }
@@ -121,8 +141,12 @@ void Player::updateWindowBoundsCollision(Vector2u windowBounds)
 	else if (this->sprite.getPosition().x + this->sprite.getGlobalBounds().width > windowBounds.x)
 		this->sprite.setPosition(windowBounds.x - sprite.getGlobalBounds().width, this->sprite.getPosition().y);
 
-	else if (this->sprite.getPosition().y + 2 * this->sprite.getGlobalBounds().height > windowBounds.y)
-		this->sprite.setPosition(this->sprite.getPosition().x, windowBounds.y - 2 * sprite.getGlobalBounds().height);
+	//else if (this->sprite.getPosition().y + 2 * this->sprite.getGlobalBounds().height > windowBounds.y)
+	//	this->sprite.setPosition(this->sprite.getPosition().x, windowBounds.y - 2 * sprite.getGlobalBounds().height);
+	else if (this->sprite.getPosition().y + sprite.getGlobalBounds().height > windowBounds.y + sprite.getGlobalBounds().height / 2.f)
+		this->sprite.setPosition(this->sprite.getPosition().x, windowBounds.y - sprite.getGlobalBounds().height / 2.f);
+
+
 
 	else if (this->sprite.getPosition().y < 300.f)
 		this->sprite.setPosition(this->sprite.getPosition().x, 300.f);
@@ -170,6 +194,21 @@ void Player::setScore(int value)
 	this->score = value;
 }
 
+void Player::setHP(int value)
+{
+	this->hp = value;
+}
+
+void Player::setEXP(int value)
+{
+	this->exp = value;
+}
+
+void Player::setGOLD(int value)
+{
+	this->gold = value;
+}
+
 void Player::StartDash(const Vector2f& dir)
 {
 	if (!isDashing && dashCooldownTimer <= 0.f)
@@ -191,24 +230,63 @@ void Player::setLevel(int value)
 
 void Player::UpdateStats()
 {
-	this->exp = 0;
-	this->expNext = 20 + (this->level * 20);
-
+	this->expNext = 40 + (this->level * 20);
 	this->damage = this->level;
-
-	this->hpMax = 1 + this->level * 5;
-	this->hp = this->hp+2;
-
+	this->hpMax += level/2 - (level-1)/2;
 	this->levelBonus = 10 * this->level;
+}
+
+void Player::LevelUp()
+{
+	this->level++;
+	this->UpdateStats();
+
+	this->exp = 0;
+	if (this->hp + (1 / 10) * hp > this->hpMax)
+		this->hp = this->hpMax;
+	else
+		this->hp += (1/10)*hp;
+
 }
 
 void Player::Update(Vector2u windowBounds)
 {
 	float deltaTime = deltaClock.restart().asSeconds(); // czas od ostatniego restartu
-
-	if (isWraithEffectActive)
+	// TripleShot timer
+	if (tripleShotActive)
+	{
+		tripleShotTimer++;
+		if (tripleShotTimer >= tripleShotDuration)
+		{
+			tripleShotActive = false;
+			tripleShotTimer = 0.f;
+		}
+	}
+	//Pierce timer
+	if (piercingActive)
+	{
+		piercingTimer -= 1.f;
+		if (piercingTimer <= 0.f)
+		{
+			piercingActive = false;
+			piercingTimer = 0.f;
+		}
+	}
+	// Lightning effect odliczanie
+	if (lightningActive)
+	{
+		lightningTimer -= 1.f;
+		if (lightningTimer <= 0.f)
+		{
+			lightningActive = false;
+			speedMultiplier = 1.f; // reset prêdkoœci
+			lightningTimer = 0.f;
+		}
+	}
+	/*if (isWraithEffectActive)
 	{
 		wraithEffectTimer += deltaTime;
+
 
 		// miganie na czarno
 		float blink = std::sin(wraithEffectTimer * 5.f); // wolniejsze miganie
@@ -222,7 +300,28 @@ void Player::Update(Vector2u windowBounds)
 			sprite.setColor(sf::Color::White);
 			restoreControls(); // przywróæ klawisze
 		}
+	}*/
+	if (isWraithEffectActive)
+	{
+		wraithEffectTimer += deltaTime;
+
+		// Kontrolowanie zamiany klawiszy
+		if (wraithEffectTimer >= shuffleDuration)
+		{
+			restoreControls();
+			isWraithEffectActive = false;
+			wraithEffectTimer = 0.f;
+		}
 	}
+	if (isWraithEffectActive)
+	{
+		float blink = std::sin(wraithEffectTimer * 5.f);
+		int alpha = (blink > 0) ? 100 : 255;
+		sprite.setColor(sf::Color(0, 0, 0, alpha));
+	}
+	else
+		sprite.setColor(sf::Color::White);
+
 
 	// --- Aktualizacja paska dash ---
 	float percent = 1.f - std::min(dashCooldownTimer / dashCooldownMax, 1.f); // 0..1
@@ -241,7 +340,7 @@ void Player::Update(Vector2u windowBounds)
 
 	if (controlsShuffled)
 	{
-		shuffleTimer += deltaClock.restart().asSeconds();
+		shuffleTimer += deltaTime;
 		if (shuffleTimer >= shuffleDuration)
 		{
 			for (int i = 0; i < 6; i++)
@@ -380,6 +479,30 @@ void Player::Draw(RenderTarget& target)
 
 	target.draw(rect);
 
+}
+void Player::addLightning()
+{
+	lightningActive = true;
+	speedMultiplier = 2.f;        // ~70% szybciej
+	lightningTimer = lightningDurationPerStack; // reset czasu
+}
+void Player::addHP(int value)
+{
+	this->hp += value;
+	if (this->hp > this->hpMax)
+		this->hp = this->hpMax;
+}
+void Player::enableTripleShot()
+{
+	tripleShotActive = true;
+	tripleShotTimer = 0;
+}
+
+
+void Player::enablePiercing()
+{
+	piercingActive = true;
+	piercingTimer = piercingDuration;
 }
 
 

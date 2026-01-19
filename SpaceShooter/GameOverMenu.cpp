@@ -25,7 +25,7 @@ GameOverMenu::GameOverMenu(float width, float height) {
 
 	//Play AGain
 	this->gameoverMenu[0].setFont(this->font);
-	this->gameoverMenu[0].setFillColor(Color::Blue);
+	this->gameoverMenu[0].setFillColor(Color(15, 207, 255));
 	this->gameoverMenu[0].setString("Play Again");
 	this->gameoverMenu[0].setCharacterSize(70);
 	this->gameoverMenu[0].setPosition((width - this->gameoverMenu[0].getGlobalBounds().width) / 2,
@@ -64,7 +64,7 @@ void GameOverMenu::moveUp() {
 		//if (mainMenuSelected == -1) {
 		//	mainMenuSelected = 2;
 		//}
-		this->gameoverMenu[this->indexSelected].setFillColor(Color::Blue);
+		this->gameoverMenu[this->indexSelected].setFillColor(Color(15, 207, 255));
 	}
 }
 
@@ -78,7 +78,7 @@ void GameOverMenu::moveDown() {
 
 		//	mainMenuSelected = 2;
 		//}
-		this->gameoverMenu[this->indexSelected].setFillColor(Color::Blue);
+		this->gameoverMenu[this->indexSelected].setFillColor(Color(15, 207, 255));
 	}
 }
 

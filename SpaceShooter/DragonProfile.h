@@ -10,4 +10,6 @@ struct DragonProfile {
     int shootTimerMax;
     int price;
     bool isUnlocked;
+    float scale;
+    float speed;
 };

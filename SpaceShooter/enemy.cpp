@@ -125,7 +125,7 @@ Enemy::Enemy(Texture* texture, Vector2u windowBounds,
         this->shootTimerMax = 200;    // rzadko strzela
         this->projectileSpeed = 3.f;
         this->speed = 1.f;
-        this->hpMax = 2;               // ma³o HP
+        this->hpMax = 3;               // ma³o HP
         this->damageMin = 1;
         this->damageMax = 2;
         this->stopY = windowBounds.y * 0.2f; // jak Harpy
@@ -136,7 +136,7 @@ Enemy::Enemy(Texture* texture, Vector2u windowBounds,
         this->speed = 0.5f;
         this->hpMax = 20;
         this->damageMax = (damageMax > 0) ? damageMax : 3;
-        this->damageMin = (damageMin > 0) ? damageMin : 2;
+        
         break;
     case EnemyType::BossBayle:
         this->hpMax = 100;
@@ -178,19 +178,22 @@ void Enemy::handleVerticalShot(float dt, const sf::Vector2f& playerPos)
     static float shotTimer = 0.f;
     shotTimer += dt;
 
-    float shotInterval = 0.5f; // strza³ co pó³ sekundy
+    float shotInterval = 0.3f; // strza³ co pó³ sekundy
     if (shotTimer >= shotInterval)
     {
         shotTimer = 0.f;
 
         // Pozycja spawn pocisku — ze œrodka sprite, uwzglêdniaj¹c skalê
         sf::Vector2f spawnPos = sprite.getPosition() +
-            sf::Vector2f(sprite.getGlobalBounds().width * 0.1f * sprite.getScale().x,
-                sprite.getGlobalBounds().height * sprite.getScale().y);
+            sf::Vector2f(sprite.getGlobalBounds().width * 0.01f * sprite.getScale().x,
+                sprite.getGlobalBounds().height * -0.01f * sprite.getScale().y);
 
 
         // Kierunek w stronê gracza
         sf::Vector2f dir = playerPos - spawnPos;
+
+        dir.x += 125.f;
+
         float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
         if (len != 0.f)
             dir /= len; // normalizacja
@@ -202,7 +205,7 @@ void Enemy::handleVerticalShot(float dt, const sf::Vector2f& playerPos)
         sf::Vector2f projectileScale(0.05f, 0.05f);
 
         // Dodajemy pocisk do wektora
-        fires.emplace_back(projectileTexture, spawnPos, dir * projectileSpeed, projectileScale);
+        fires.emplace_back(projectileTexture, spawnPos, dir * projectileSpeed, projectileScale, this->damageMax);
     }
 
     attackTimer += dt;
@@ -234,7 +237,7 @@ void Enemy::handleCrossShot(float dt)
         {
             float angle = static_cast<float>(rand() % 360) * 3.14159265f / 180.f;
             Vector2f dir(std::cos(angle), std::sin(angle));
-            fires.emplace_back(projectileTexture, spawnPos, dir * 5.f, Vector2f(0.05f, 0.2f));
+            fires.emplace_back(projectileTexture, spawnPos, dir * 5.f, Vector2f(0.05f, 0.2f), this->damageMax);
         }
     }
 
@@ -269,7 +272,7 @@ void Enemy::handleSpiralShot(float dt)
         float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
         if (len != 0.f) dir /= len;
 
-        fires.emplace_back(projectileTexture, spawnPos, dir * speed, Vector2f(0.05f, 0.2f));
+        fires.emplace_back(projectileTexture, spawnPos, dir * speed, Vector2f(0.05f, 0.2f), this->damageMax);
 
         elapsed += 0.2f;
     }
@@ -377,7 +380,7 @@ void Enemy::Update(const sf::Vector2f& playerPos, float dt)
                 spawnPos.y += sprite.getGlobalBounds().height / 2.f;
 
                 Vector2f offset(sprite.getGlobalBounds().width * 0.9f, sprite.getGlobalBounds().height * 0.8f);// resp pocisku
-                fires.emplace_back(projectileTexture, sprite.getPosition() + offset, dir * projectileSpeed, scale);// dir predkosc
+                fires.emplace_back(projectileTexture, sprite.getPosition() + offset, dir * projectileSpeed, scale, this->damageMax);// dir predkosc
 
             }
         }
@@ -455,7 +458,8 @@ void Enemy::Update(const sf::Vector2f& playerPos, float dt)
                     projectileTexture,
                     sprite.getPosition() + offset,
                     dir * projectileSpeed,
-                    scale
+                    scale,
+                    this->damageMax
                 );
             }
         }
@@ -491,7 +495,7 @@ void Enemy::Update(const sf::Vector2f& playerPos, float dt)
             if (!isAttacking && this->attackTimer >= this->attackCooldown)
             {
                 int r = rand() % 3;
-                r = 0;
+               
                 this->currentAttack = static_cast<BossAttackType>(r + 1); // +1 bo None = 0
                 isAttacking = true;
                 this->attackTimer = 0.f;

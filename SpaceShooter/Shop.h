@@ -3,6 +3,8 @@
 #include <SFML/Graphics.hpp>
 #include<iostream>
 #include<vector>
+#include <iomanip>
+#include <sstream>
 #include "DragonProfile.h"
 
 using namespace sf;
@@ -14,7 +16,7 @@ class Shop
 private:
 	int itemSelected;
 	int equippedIndex;
-	
+
 
 
 	std::vector<DragonProfile> Dragons;
@@ -66,7 +68,7 @@ public:
 	//accessors
 	const DragonProfile& getSelectedDragon() const { return Dragons[itemSelected]; }
 	const DragonProfile& getDragon(int index) { return Dragons[index]; }
-	
+
 
 };
 

@@ -2,12 +2,22 @@
 #include<iostream>
 #include <Windows.h>
 #include <SFML/System.hpp>
+#include"player.h"
 //#include <SFML/Audio.hpp>
 #include <filesystem>
-Game::Game(RenderWindow* window, const DragonProfile& choosenDragon):totalGold(0)
+Game::Game(RenderWindow* window, const DragonProfile& choosenDragon):totalGold(10000)
 {
 	this->window = window;
 	this->window->setFramerateLimit(60);
+
+	if (!backgroundMusic.openFromFile("Sounds/Soundtrack.wav")) {
+		MessageBoxA(nullptr, "Nie zaladowano soundtracku", "BLAD", MB_OK);
+	}
+	else {
+		backgroundMusic.setLoop(true);  // w³¹cz pêtlê
+		backgroundMusic.setVolume(100.f); // ustaw g³oœnoœæ 0-100
+		backgroundMusic.play();          // start
+	}
 
 	//gameover
 	this->gameOver = false;
@@ -20,6 +30,8 @@ Game::Game(RenderWindow* window, const DragonProfile& choosenDragon):totalGold(0
 	if (!deathBuffer.loadFromFile("Sounds/death.wav"))
 		MessageBoxA(nullptr, "Nie zaladowano dzwieku smierci", "BLAD", MB_OK);
 	deathSound.setBuffer(deathBuffer);
+	powerUpBuffer.loadFromFile("Sounds/powerUpSound.wav");
+	powerUpSound.setBuffer(powerUpBuffer);
 
 	//background
 	if (!backgroundTexture.loadFromFile("Textures/background.png"))
@@ -54,6 +66,12 @@ Game::Game(RenderWindow* window, const DragonProfile& choosenDragon):totalGold(0
 	this->enemy01Texture.loadFromFile("Textures/enemies/Harpy.png");
 	this->enemyRavenTexture.loadFromFile("Textures/enemies/raven.png");
 	this->enemyArgusTexture.loadFromFile("Textures/enemies/argus.png");
+
+	//powerups textures
+	powerupTextureHeart.loadFromFile("Textures/powerups/heart.png");
+	powerupTextureSword.loadFromFile("Textures/powerups/sword.png");
+	powerupTextureLightning.loadFromFile("Textures/powerups/lightning.png");
+	powerupTexturePierce.loadFromFile("Textures/powerups/pierce.png");
 
 	if (!enemyTankTexture.loadFromFile("Textures/enemies/Tank.png"))
 		MessageBoxA(nullptr, "Nie zaladowano tekstury Tanka", "BLAD", MB_OK);
@@ -104,7 +122,7 @@ Game::Game(RenderWindow* window, const DragonProfile& choosenDragon):totalGold(0
 
 	this->enemySpawnTimerMax = 150;// spawner
 	this->enemySpawnTimer = this->enemySpawnTimerMax;
-
+	this->BayleSpawnNumber = 0;
 
 	this->InitUI();
 	this->InitBars();
@@ -215,9 +233,12 @@ void Game::CombatUpdate()
 				// obra¿enia
 				enemies[j].takeDamage(fires[i].getDamage());
 
-				// usuñ pocisk
-				fires.erase(fires.begin() + i);
-				fireDeleted = true;
+
+				if (!player->isPiercingActive())
+				{
+					fires.erase(fires.begin() + i);
+					fireDeleted = true;
+				}
 
 				// jeœli wróg martwy
 				if (enemies[j].getHP() <= 0)
@@ -227,47 +248,55 @@ void Game::CombatUpdate()
 					{
 						player->addEXP(10);
 						player->addScore(50);
-						this->totalGold += 2;
-						player->addGold(2);
+						this->totalGold += 5;
+						player->addGold(5);
 					}
 					else if (enemies[j].getEnemyType() == Enemy::EnemyType::Raven)
 					{
 						player->addEXP(20);
 						player->addScore(100);
-						this->totalGold += 5;
-						player->addGold(5);
+						this->totalGold += 10;
+						player->addGold(10);
 					}
 					else if (enemies[j].getEnemyType() == Enemy::EnemyType::Argus)
 					{
 						player->addEXP(30);
 						player->addScore(150);
-						this->totalGold += 1;
-						player->addGold(1);
+						this->totalGold += 15;
+						player->addGold(15);
 					}
 					else if (enemies[j].getEnemyType() == Enemy::EnemyType::Tank)
 					{
 						player->addEXP(30);
 						player->addScore(150);
-						this->totalGold += 1;
-						player->addGold(1);
+						this->totalGold += 20;
+						player->addGold(20);
 					}
 					else if (enemies[j].getEnemyType() == Enemy::EnemyType::Wraith)
 					{
 						player->addEXP(30);
 						player->addScore(150);
-						this->totalGold += 1;
-						player->addGold(1);
+						this->totalGold += 25;
+						player->addGold(25);
+					}
+					else if (enemies[j].getEnemyType() == Enemy::EnemyType::BossBayle)	
+					{
+						player->addEXP(200);
+						player->addScore(500);
+						this->totalGold += 150;
+						player->addGold(50);
 					}
 
 					//sprawdzam czy gracz osiagnal nowy poziom
 					if (player->getEXP() >= player->getEXPnext())
 					{
 						int temp = player->getEXP() - player->getEXPnext();
-						player->setLevel(player->getLevel()+1);
+						player->LevelUp();
 						player->addEXP(temp);
 						player->addScore(player->getlevelBonus());
 					}
 
+					TrySpawnPowerUp(enemies[j].getPosition());
 					enemies.erase(enemies.begin() + j);
 
 				}
@@ -283,7 +312,7 @@ void Game::CombatUpdate()
 		if (!fireDeleted)
 			i++;
 	}
-
+	
 
 }
 void Game::CheckPlayerEnemyCollision()
@@ -293,8 +322,7 @@ void Game::CheckPlayerEnemyCollision()
 		if (player->getGlobalBounds().intersects(enemies[i].getHitbox().getGlobalBounds()))
 		{
 			// gracz dostaje obra¿enia
-			player->takeDamage(1);
-
+			player->takeDamage(enemies[i].getDamage());
 			// wróg znika po zderzeniu
 			if (enemies[i].getEnemyType() != Enemy::EnemyType::BossBayle)
 			{
@@ -365,8 +393,14 @@ void Game::CheckProjectileCollisions()
 				if (playerFires[i].getGlobalBounds().intersects(enemyFires[j].getGlobalBounds()))
 				{
 					// oba pociski zniszczone
-					playerFires.erase(playerFires.begin() + i);
-					enemyFires.erase(enemyFires.begin() + j);
+					if (!player->isPiercingActive())
+					{
+						playerFires.erase(playerFires.begin() + i);
+						enemyFires.erase(enemyFires.begin() + j);
+					}
+					else
+						enemyFires.erase(enemyFires.begin() + j);
+
 					destroyed = true;
 				}
 				else
@@ -381,6 +415,46 @@ void Game::CheckProjectileCollisions()
 	}
 }
 
+void Game::CheckPlayerPowerUpCollision()
+{
+	for (size_t i = 0; i < powerups.size(); )
+	{
+		if (player->getGlobalBounds().intersects(
+			powerups[i].sprite.getGlobalBounds()))
+		{
+			// efekt powerupa
+			powerUpSound.play();
+			switch (powerups[i].type)
+			{
+			case PowerUpType::Heart:
+				player->addHP(1);
+				showText("+1 HP");
+				break;
+
+			case PowerUpType::Sword:
+				showText("TRIPLE SHOT!");
+				player->enableTripleShot();
+				break;
+			case PowerUpType::Lightning:
+				showText("SPEED BOOST!");
+				player->addLightning();
+				break;
+			case PowerUpType::Pierce:
+				showText("PIERCING SHOTS!");
+				player->enablePiercing();
+				break;
+
+			}
+
+			// usuwamy powerupa po zebraniu
+			powerups.erase(powerups.begin() + i);
+		}
+		else
+		{
+			++i;
+		}
+	}
+}
 
 void Game::Update()
 {
@@ -403,6 +477,36 @@ void Game::Update()
 
 
 	float dt = deltaClock.restart().asSeconds();
+
+	// Aktualizacja licznika trudnoœci
+	difficultyTimer += dt;
+	if (difficultyTimer >= difficultyInterval)
+	{
+		difficultyTimer = 0.f;
+		difficultyLevel++;
+
+		// Zwiêksz HP i DMG dla wszystkich ¿ywych przeciwników
+		for (auto& e : enemies)
+		{
+			float multiplier = difficultyMultiplierStep;
+			e.setHPMax(static_cast<int>(e.getHPMax() * multiplier));
+			e.setHP(static_cast<int>(e.getHP() * multiplier)); // opcjonalnie, ¿eby leczy³o czêœæ HP
+			e.setDamageMax(static_cast<int>(e.getDamage() * multiplier));
+		}
+
+		std::cout << "Difficulty increased! Level: " << difficultyLevel << std::endl;
+	}
+
+	//buffy
+	static std::map<Enemy::EnemyType, float> enemyMultiplier = {
+	{Enemy::EnemyType::Harpy, 1.4f},
+	{Enemy::EnemyType::Raven, 2.f},
+	{Enemy::EnemyType::Argus, 3.f},
+	{Enemy::EnemyType::Tank, 1.3f},
+	{Enemy::EnemyType::Wraith, 2.8f},
+	{Enemy::EnemyType::BossBayle, 5.f}
+	};
+
 	for (size_t i = 0; i < enemies.size();)
 	{
 		// Aktualizacja pozycji wroga (Harpy, Raven, Argus)
@@ -452,10 +556,11 @@ void Game::Update()
 	gameTimer += 1.f / 60.f; // ka¿da klatka = 1/60 sekundy
 
 	// --- Wy³¹czamy resp zwyk³ych przeciwników po 3 minutach ---
-	if (gameTimer >= 3.f) {
+	if (gameTimer >= 20.f && BayleSpawnNumber<3) {
 		normalEnemiesSpawnEnabled = false;
+		BayleSpawnNumber++;
 	}
-
+	std::cout << BayleSpawnNumber << std::endl;
 	// --- Sprawdzenie, czy wszyscy zwykli przeciwnicy pokonani ---
 	bool allEnemiesDead = true;
 	for (auto& e : enemies) {
@@ -464,6 +569,8 @@ void Game::Update()
 			break;
 		}
 	}
+
+
 
 	// --- Spawn Bayle’a tylko raz ---
 	if (!bayleSpawned && gameTimer >= 3.f && !normalEnemiesSpawnEnabled && allEnemiesDead) {
@@ -491,7 +598,14 @@ void Game::Update()
 
 		if (bayle->isDead())
 		{
-			delete bayle;
+			for (auto it = enemies.begin(); it != enemies.end(); ++it)
+			{
+				if (&(*it) == bayle) {
+					enemies.erase(it); 
+					break;
+				}
+			}
+
 			bayle = nullptr;
 			bayleSpawned = false;
 			bossReadyToSpawn = false;
@@ -508,7 +622,7 @@ void Game::Update()
 
 			Enemy::EnemyType type;
 			int r = rand() % 100; // 0=Harpy, 1=Raven, 2=Argus, 3=Wraith,4=Tank
-
+			r = 95;
 			if (r < 20) type = Enemy::EnemyType::Harpy;//20%
 			else if (r >= 20 && r < 55) type = Enemy::EnemyType::Raven;//35%
 			else if (r >= 55 && r < 85) type = Enemy::EnemyType::Argus;//30%
@@ -579,8 +693,19 @@ void Game::Update()
 				2, 3, 1                // hpMax, damageMax, damageMin
 			);
 
+			for (size_t i = 0; i < powerups.size(); )
+			{
+				powerups[i].update(1.f / 60.f); // dt ~ 1/60 sekundy
+
+				if (powerups[i].sprite.getPosition().y > window->getSize().y)
+					powerups.erase(powerups.begin() + i);
+				else
+					++i;
+			}
+			this->CheckPlayerPowerUpCollision();
 			this->enemySpawnTimer = 0;
 		}
+		
 	}
 
 	
@@ -594,6 +719,24 @@ void Game::Update()
 	this->UpdateUI();
 	//update bars
 	this->updateBars();
+
+	for (size_t i = 0; i < powerups.size(); )
+	{
+		powerups[i].update(1.f / 60.f); // dt ~ 1/60 sekundy
+
+		if (powerups[i].sprite.getPosition().y > window->getSize().y)
+			powerups.erase(powerups.begin() + i);
+		else
+			++i;
+	}
+	this->CheckPlayerPowerUpCollision();
+	this->updateNotifications();
+
+}
+
+float Game::getDifficultyMultiplier() const
+{
+	return std::pow(difficultyMultiplierStep, difficultyLevel - 1);
 }
 
 
@@ -620,25 +763,7 @@ void Game::updateNotifications()
 
 	// Efekt Wraith: miganie gracza na czarno
 	//float deltaTime = deltaClock.restart().asSeconds(); // czas od ostatniego update
-	float deltaTime = 1.f / 60.f;
-	if (wraithFogTimer > 0.f)
-	{
-		wraithFogTimer -= deltaTime;
-		player->setWraithEffectActive(true);
-
-		// Miganie na czarno
-		wraithBlinkTime += deltaTime;
-		float blink = std::sin(wraithBlinkTime * 5.f); // wolniejsze miganie
-		int colorAlpha = (blink > 0) ? 100 : 255;
-		player->getSprite().setColor(sf::Color(0, 0, 0, colorAlpha));
-	}
-	else if (player->getWraithEffectActive()) // efekt siê koñczy
-	{
-		player->setWraithEffectActive(false);
-		wraithBlinkTime = 0.f;
-		player->getSprite().setColor(sf::Color::White);
-		player->restoreControls(); // przywróæ klawisze
-	}
+	
 
 
 
@@ -689,6 +814,8 @@ void Game::Draw()
 	this->drawBars();//rysowanie barków
 
 	//window->display();
+	for (auto& pu : powerups)
+		window->draw(pu.sprite);
 }
 
 void Game::Reset(const DragonProfile& choosenDragon) {
@@ -706,10 +833,36 @@ void Game::Reset(const DragonProfile& choosenDragon) {
 		this->window->getSize()); //this->window->getSize()
 
 	//usunac pzreciwniow
+	bayle = nullptr;
+	bayleSpawned = false;
+	bossReadyToSpawn = false;
+	normalEnemiesSpawnEnabled = true;
+	gameTimer = 0;
+
 	this->enemies.clear();
 	this->enemySpawnTimer = 0;
 
 	//reset statystyk
 
+}
+void Game::TrySpawnPowerUp(const sf::Vector2f& position)
+{
+	int chance = rand() % 100;
+	if (chance < 30)//szansa na drop 
+	{
+		int r = rand() % 4;
+		PowerUpType type;
+		sf::Texture* tex = NULL;
+
+		switch (r)
+		{
+		case 0: type = PowerUpType::Heart; tex = &powerupTextureHeart; break;
+		case 1: type = PowerUpType::Sword; tex = &powerupTextureSword; break;
+		case 2: type = PowerUpType::Lightning; tex = &powerupTextureLightning; break;
+		case 3: type = PowerUpType::Pierce; tex = &powerupTexturePierce; break;
+		}
+
+		powerups.emplace_back(type, position, *tex);
+	}
 }
 

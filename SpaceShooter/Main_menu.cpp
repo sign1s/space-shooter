@@ -9,6 +9,11 @@ Main_menu::Main_menu(float width, float height) {
 	this->background.setSize(Vector2f(width, height));
 	this->background.setTexture(&this->mainTexture);
 
+	smokBuffer.loadFromFile("Sounds/smoka.wav");
+
+	smokSound.setBuffer(smokBuffer);
+
+
 	if (!font.loadFromFile("Assets/TrovicalCalmFreeItalic-aYAZx.otf")) {
 		std::cout << "No font" << std::endl;
 	}
@@ -51,7 +56,7 @@ Main_menu::Main_menu(float width, float height) {
 
 	this->mainMenuSelected = 0;
 
-
+	smokSound.play();
 }
 
 Main_menu::~Main_menu() {
@@ -65,7 +70,9 @@ void Main_menu::draw(RenderWindow& window) {
 	for (int i = 0; i < Max_main_menu; i++) {
 		window.draw(this->mainMenu[i]);
 	}
+
 }
+
 
 //MoveUp
 void Main_menu::moveUp() {

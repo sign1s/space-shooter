@@ -101,9 +101,8 @@ void FileManager::UpdateSlotUI()
 }
 
 
-bool FileManager::LoadFile(int slotSelected, std::string& playerName, 
-	int& level, int& score, int& dragon_index)
-{
+bool FileManager::LoadFile(int slotSelected, std::string& playerName,
+	int& level, int& hp, int& exp, int& gold, int& score, int& dragon_index) {
 
 	std::ifstream file(filenames[slotSelected]);
 
@@ -111,12 +110,12 @@ bool FileManager::LoadFile(int slotSelected, std::string& playerName,
 	{
 		if (file >> playerName >> level >> score >> dragon_index)
 		{
-			std::cout << "wczytano slot" << std::endl;
+			//std::cout << "wczytano slot" << std::endl;
 			return true;
 		}
 		else
 		{
-			std::cout << "nie wczytano slotu" << std::endl;
+			//std::cout << "nie wczytano slotu" << std::endl;
 			return false;
 		}
 
@@ -124,13 +123,13 @@ bool FileManager::LoadFile(int slotSelected, std::string& playerName,
 	}
 	else
 	{
-		std::cout << "nie mozna otworzyc pliku" << std::endl;
+		//std::cout << "nie mozna otworzyc pliku" << std::endl;
 		return false;
 	}
 }
 
-void FileManager::SaveFile(int slotSelected, std::string playerName, 
-	int level, int score, int dragon_index)
+void FileManager::SaveFile(int slotSelected, std::string playerName,
+	int level, int hp, int exp, int gold, int score, int dragon_index)
 {
 	std::ofstream file(filenames[slotSelected]);
 
@@ -139,9 +138,9 @@ void FileManager::SaveFile(int slotSelected, std::string playerName,
 		file << playerName << " " << level << " " << score << " " << dragon_index;
 		file.close();
 	    
-		std::cout << "zapisano slot " <<slotSelected<< std::endl;
+		//std::cout << "zapisano slot " <<slotSelected<< std::endl;
 	}
-	else std::cout << "nie wczytano slotu" << std::endl;
+	//else std::cout << "nie wczytano slotu" << std::endl;
 }
 
 //Draw menu

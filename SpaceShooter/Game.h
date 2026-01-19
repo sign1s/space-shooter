@@ -2,6 +2,7 @@
 
 #include "player.h"
 #include "enemy.h"
+#include "PowerUp.h"
 #include <SFML/Audio.hpp>
 #include <SFML/System.hpp>
 
@@ -43,7 +44,10 @@ private:
 	//sounds
 	sf::SoundBuffer deathBuffer;
 	sf::Sound deathSound;
+	sf::Music backgroundMusic;
 
+	sf::SoundBuffer powerUpBuffer;
+	sf::Sound powerUpSound;
 	//std::vector<Player> players;
 	Player* player;
 	Texture playerTexture;
@@ -51,9 +55,10 @@ private:
 	//przeciwnicy
 	std::vector<Enemy> enemies;
 	std::vector<Enemy> enemiesSaved;
+	std::vector<PowerUp> powerups;
 	int enemySpawnTimer;
 	int enemySpawnTimerMax;
-
+	int BayleSpawnNumber;
 
 	//Enemy* enemy01;
 
@@ -66,12 +71,21 @@ private:
 	Texture enemyTankTexture;
 	Texture enemyBayleTexture;
 
+	//tekstury powerupow
+	sf::Texture powerupTextureHeart;
+	sf::Texture powerupTextureLightning;
+	sf::Texture powerupTextureSword;
+	sf::Texture powerupTexturePierce;
+
+	float difficultyTimer = 0.f;        // licznik czasu dla zwiêkszania trudnoœci
+	float difficultyInterval = 30.f;    // co ile sekund przeciwnicy rosn¹ w si³ê
+	float difficultyMultiplierStep = 1.2f; // o ile mno¿ymy HP i DMG
+	int difficultyLevel = 1;            // poziom trudnoœci
+
+
 
 	bool showHitboxes = true;
 
-	// licznik efektu Wraitha
-	int wraithFogTimer = 3.f;
-	float wraithBlinkTime = 0.f;
 
 	//waluta
 	int totalGold;
@@ -126,6 +140,7 @@ public:
 	void InitBars(); //barki
 	void updateBars();
 	void drawBars();
+	float getDifficultyMultiplier() const;
 
 	void CombatUpdate();
 	void Update();
@@ -142,6 +157,9 @@ public:
 	void showText(std::string message);
 	void updateNotifications(); //for text timers
 	void drawNotifications();   //for infoText
+
+	void TrySpawnPowerUp(const sf::Vector2f& position);
+	void CheckPlayerPowerUpCollision();
 
 	//funkcja ktora bierze wskaznik do playera
 	 Player* getPlayer() const { return this->player; }
