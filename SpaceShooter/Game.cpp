@@ -234,7 +234,7 @@ void Game::CombatUpdate()
 				enemies[j].takeDamage(fires[i].getDamage());
 
 
-				if (!player->isPiercingActive())
+				if (!player->isPiercingActive() || !bossSpawned )
 				{
 					fires.erase(fires.begin() + i);
 					fireDeleted = true;
@@ -428,7 +428,7 @@ void Game::CheckPlayerPowerUpCollision()
 			{
 			case PowerUpType::Heart:
 				player->addHP(1);
-				showText("+1 HP");
+				showText("HEALED!");
 				break;
 
 			case PowerUpType::Sword:
@@ -556,9 +556,8 @@ void Game::Update()
 	gameTimer += 1.f / 60.f; // ka¿da klatka = 1/60 sekundy
 
 	// --- Wy³¹czamy resp zwyk³ych przeciwników po 3 minutach ---
-	if (gameTimer >= 20.f && BayleSpawnNumber<3) {
+	if (gameTimer >= 20.f ) {
 		normalEnemiesSpawnEnabled = false;
-		BayleSpawnNumber++;
 	}
 	std::cout << BayleSpawnNumber << std::endl;
 	// --- Sprawdzenie, czy wszyscy zwykli przeciwnicy pokonani ---
@@ -622,7 +621,6 @@ void Game::Update()
 
 			Enemy::EnemyType type;
 			int r = rand() % 100; // 0=Harpy, 1=Raven, 2=Argus, 3=Wraith,4=Tank
-			r = 95;
 			if (r < 20) type = Enemy::EnemyType::Harpy;//20%
 			else if (r >= 20 && r < 55) type = Enemy::EnemyType::Raven;//35%
 			else if (r >= 55 && r < 85) type = Enemy::EnemyType::Argus;//30%
@@ -848,7 +846,7 @@ void Game::Reset(const DragonProfile& choosenDragon) {
 void Game::TrySpawnPowerUp(const sf::Vector2f& position)
 {
 	int chance = rand() % 100;
-	if (chance < 30)//szansa na drop 
+	if (chance < 100)//szansa na drop 
 	{
 		int r = rand() % 4;
 		PowerUpType type;
