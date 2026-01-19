@@ -538,7 +538,7 @@ void Game::Update()
 	Vector2f dashDir(0.f, 0.f);
 	if (Keyboard::isKeyPressed(Keyboard::LShift))
 	{
-		// np. kierunek w zale¿noœci od W,A,S,D
+		// kierunki
 		if (Keyboard::isKeyPressed(Keyboard::Up)) dashDir.y -= 1.f;
 		if (Keyboard::isKeyPressed(Keyboard::Down)) dashDir.y += 1.f;
 		if (Keyboard::isKeyPressed(Keyboard::Left)) dashDir.x -= 1.f;
@@ -553,14 +553,14 @@ void Game::Update()
 
 
 	//spawn enemies
-	gameTimer += 1.f / 60.f; // ka¿da klatka = 1/60 sekundy
+	gameTimer += 1.f / 60.f; 
 
-	// --- Wy³¹czamy resp zwyk³ych przeciwników po 3 minutach ---
+	// wy³¹czenie respa
 	if (gameTimer >= 20.f ) {
 		normalEnemiesSpawnEnabled = false;
 	}
 	std::cout << BayleSpawnNumber << std::endl;
-	// --- Sprawdzenie, czy wszyscy zwykli przeciwnicy pokonani ---
+	// sprawdzenie czy mobki s¹ pokonane
 	bool allEnemiesDead = true;
 	for (auto& e : enemies) {
 		if (e.getEnemyType() != Enemy::EnemyType::BossBayle && !e.isDead()) {
@@ -569,21 +569,19 @@ void Game::Update()
 		}
 	}
 
-
-
-	// --- Spawn Bayle’a tylko raz ---
+	// spawn bossa
 	if (!bayleSpawned && gameTimer >= 3.f && !normalEnemiesSpawnEnabled && allEnemiesDead) {
 		bayleSpawned = true;
 
 		sf::Vector2f spawnPos(window->getSize().x / 2.f, -200.f); // nad ekranem
-		sf::Vector2f direction(0.f, 1.f); // ruch w dó³
+		sf::Vector2f direction(0.f, 2.f); // ruch w dó³
 
 		enemies.emplace_back(
 			&enemyBayleTexture,
 			window->getSize(),
 			spawnPos,
 			direction,
-			sf::Vector2f(2.f, 2.f),      // skala sprite
+			sf::Vector2f(2.f, 2.f),      // skala
 			Enemy::EnemyType::BossBayle,
 			&bayleMissile
 		);

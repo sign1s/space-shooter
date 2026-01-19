@@ -78,9 +78,9 @@ void Player::restoreControls()
 
 void Player::shuffleControls()
 {
-	std::vector<int> tempControls(originalControls, originalControls + 6); // teraz 6 klawiszy
+	std::vector<int> tempControls(originalControls, originalControls + 6);
 
-	// Fisher-Yates shuffle
+	
 	for (int i = 5; i > 0; --i)
 	{
 		int j = rand() % (i + 1);
