@@ -149,11 +149,11 @@ int main()
 						int x = file.slotPressed();
 
 						std::string tempPlayerName;
-						int tempLevel, tempHP, tempEXP, tempGOLD, tempTotalGold,
+						int tempLevel, tempHP, tempEXP, tempTotalGold,
 							tempScore, tempDragonIndex;//zmienne pomocnicze
 
 						if (file.LoadFile(x, tempPlayerName,
-							tempLevel, tempHP, tempEXP, tempGOLD, tempScore, tempDragonIndex))
+							tempLevel, tempHP, tempEXP, tempTotalGold, tempScore, tempDragonIndex))
 						{
 							shop.equipDragon(tempDragonIndex);
 							game.Reset(shop.getSelectedDragon());
@@ -162,7 +162,7 @@ int main()
 							pointer->setLevel(tempLevel);
 							pointer->setHP(tempHP);
 							pointer->setEXP(tempEXP);
-							pointer->setGOLD(tempGOLD);
+							game.setTotalGold(tempTotalGold);
 							pointer->setScore(tempScore);
 							Name.setName(tempPlayerName);
 
@@ -220,11 +220,11 @@ int main()
 							int currentLevel = pointer->getLevel();
 							int currentHP = pointer->getHP();
 							int currentEXP = pointer->getEXP();
-							int currentGOLD = pointer->getGold();
+							int currentTotalGold = game.getTotalGold();
 							int currentScore = pointer->getScore();
 							int currentDragon = shop.getEquippedIndex();
 
-							file.SaveFile(x, currentName, currentLevel, currentHP, currentEXP, currentGOLD, currentScore, currentDragon);
+							file.SaveFile(x, currentName, currentLevel, currentHP, currentEXP, currentTotalGold, currentScore, currentDragon);
 							file.UpdateSlotUI();
 
 							currentState = State::PAUSE;

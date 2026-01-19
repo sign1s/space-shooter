@@ -489,9 +489,10 @@ void Player::addLightning()
 	speedMultiplier = 2.f;        // ~70% szybciej
 	lightningTimer = lightningDurationPerStack; // reset czasu
 }
+
 void Player::addHP(int value)
 {
-	this->hp += value;
+	this->hp += this->hpMax / 10;
 	if (this->hp > this->hpMax)
 		this->hp = this->hpMax;
 }

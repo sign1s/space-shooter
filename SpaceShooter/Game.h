@@ -132,6 +132,11 @@ public:
 		return this->totalGold;
 	}
 
+	void setTotalGold(int value) {
+
+		this->totalGold=value;
+	}
+
 
 	//Funkcje
 	//user interface
