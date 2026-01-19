@@ -70,6 +70,12 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -86,11 +92,7 @@
       <AdditionalDependencies>sfml-graphics-s-d.lib;sfml-window-s-d.lib;sfml-system-s-d.lib;sfml-audio-s-d.lib;sfml-network-s-d.lib;freetype.lib;openal32.lib;gdi32.lib;winmm.lib;opengl32.lib;ws2_32.lib;user32.lib;Advapi32.lib;vorbis.lib;ogg.lib;vorbisfile.lib;flac.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(SolutionDir)Textures" "$(SolutionDir)SpaceShooter\Textures" /E /I /Y
-xcopy "$(SolutionDir)Assets" "$(SolutionDir)SpaceShooter\Assets" /E /I /Y
-xcopy "$(SolutionDir)Resources" "$(SolutionDir)SpaceShooter\Resources" /E /I /Y
-xcopy "$(SolutionDir)Sounds" "$(SolutionDir)SpaceShooter\Sounds" /E /I /Y
-copy "$(SolutionDir)openal32.dll" "$(SolutionDir)Debug\openal32.dll" /Y
+      <Command>copy "$(SolutionDir)openal32.dll" "$(SolutionDir)Debug\openal32.dll" /Y
 exit /b 0
 </Command>
     </PostBuildEvent>
@@ -104,12 +106,12 @@ exit /b 0
       <PreprocessorDefinitions>WIN32;SFML_STATIC</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\Users\Jeremi\Desktop\gra\SpaceShooter\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\natal\OneDrive\Pulpit\SFML-2.6.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Users\Jeremi\Desktop\gra\SpaceShooter\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\natal\OneDrive\Pulpit\SFML-2.6.2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>sfml-graphics-s-d.lib;sfml-window-s-d.lib;sfml-system-s-d.lib;sfml-audio-s-d.lib;sfml-network-s-d.lib;freetype.lib;openal32.lib;gdi32.lib;winmm.lib;opengl32.lib;ws2_32.lib;user32.lib;Advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
@@ -145,18 +147,33 @@ xcopy "$(SolutionDir)Assets" "$(SolutionDir)SpaceShooter\Assets" /E /I /Y
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\enemy.cpp" />
-    <ClCompile Include="..\src\fire.cpp" />
-    <ClCompile Include="..\src\Game.cpp" />
-    <ClCompile Include="..\src\main.cpp" />
-    <ClCompile Include="..\src\player.cpp" />
+    <ClCompile Include="enemy.cpp" />
+    <ClCompile Include="fire.cpp" />
+    <ClCompile Include="Game.cpp" />
+    <ClCompile Include="GameOverMenu.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Main_menu.cpp" />
+    <ClCompile Include="PauseMenu.cpp" />
+    <ClCompile Include="player.cpp" />
+    <ClCompile Include="FileManager.cpp" />
+    <ClCompile Include="PlayerName.cpp" />
+    <ClCompile Include="PowerUp.cpp" />
+    <ClCompile Include="Shop.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\enemy.h" />
-    <ClInclude Include="..\src\fire.h" />
-    <ClInclude Include="..\src\Game.h" />
-    <ClInclude Include="..\src\player.h" />
+    <ClInclude Include="DragonProfile.h" />
+    <ClInclude Include="enemy.h" />
+    <ClInclude Include="fire.h" />
+    <ClInclude Include="Game.h" />
+    <ClInclude Include="GameOverMenu.h" />
+    <ClInclude Include="Main_menu.h" />
+    <ClInclude Include="PauseMenu.h" />
+    <ClInclude Include="player.h" />
+    <ClInclude Include="PlayerName.h" />
+    <ClInclude Include="PowerUp.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="FileManager.h" />
+    <ClInclude Include="Shop.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\Resources\ścierwojad.ico" />
