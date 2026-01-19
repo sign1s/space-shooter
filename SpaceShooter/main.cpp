@@ -65,6 +65,7 @@ int main()
 					case Keyboard::Enter:
 						int x = Menu.mainMenuPressed();
 						if (x == 0) {
+							Name.setName("");
 							currentState = State::PLAYERNAME;
 						}
 						if (x == 2) currentState = State::SHOPPING;
