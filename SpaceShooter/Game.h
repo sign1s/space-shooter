@@ -132,6 +132,7 @@ public:
 		return this->totalGold;
 	}
 
+
 	//Funkcje
 	//user interface
 	void InitUI(); //teksty

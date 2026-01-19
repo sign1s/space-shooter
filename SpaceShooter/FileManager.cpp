@@ -108,7 +108,7 @@ bool FileManager::LoadFile(int slotSelected, std::string& playerName,
 
 	if (file.is_open())
 	{
-		if (file >> playerName >> level >> score >> dragon_index)
+		if (file >> playerName >> level >> hp >> exp >> gold >> score >> dragon_index)
 		{
 			//std::cout << "wczytano slot" << std::endl;
 			return true;
@@ -135,7 +135,7 @@ void FileManager::SaveFile(int slotSelected, std::string playerName,
 
 	if (file.is_open())
 	{
-		file << playerName << " " << level << " " << score << " " << dragon_index;
+		file << playerName << " " << level << " " << hp << " " << exp << " " << gold << " " << score << " " << dragon_index;
 		file.close();
 	    
 		//std::cout << "zapisano slot " <<slotSelected<< std::endl;

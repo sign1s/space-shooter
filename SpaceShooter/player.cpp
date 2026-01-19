@@ -196,7 +196,8 @@ void Player::setScore(int value)
 
 void Player::setHP(int value)
 {
-	this->hp = value;
+	if (value > this->hpMax) this->hp = this->hpMax;
+	else this->hp = value; 
 }
 
 void Player::setEXP(int value)
@@ -242,10 +243,12 @@ void Player::LevelUp()
 	this->UpdateStats();
 
 	this->exp = 0;
-	if (this->hp + (1 / 10) * hp > this->hpMax)
+	
+	if (this->hp + 0.1f * hp > this->hpMax)
 		this->hp = this->hpMax;
 	else
-		this->hp += (1/10)*hp;
+		this->hp += 0.1f * hp;
+		
 
 }
 

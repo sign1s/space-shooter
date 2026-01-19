@@ -68,6 +68,7 @@ int main()
 					case Keyboard::Enter:
 						int x = Menu.mainMenuPressed();
 						if (x == 0) {
+							Name.setName("");
 							currentState = State::PLAYERNAME;
 						}
 						if (x == 2) currentState = State::SHOPPING;
@@ -148,12 +149,13 @@ int main()
 						int x = file.slotPressed();
 
 						std::string tempPlayerName;
-						int tempLevel, tempHP, tempEXP, tempGOLD,
+						int tempLevel, tempHP, tempEXP, tempGOLD, tempTotalGold,
 							tempScore, tempDragonIndex;//zmienne pomocnicze
 
 						if (file.LoadFile(x, tempPlayerName,
 							tempLevel, tempHP, tempEXP, tempGOLD, tempScore, tempDragonIndex))
 						{
+							shop.equipDragon(tempDragonIndex);
 							game.Reset(shop.getSelectedDragon());
 
 							Player* pointer = game.getPlayer();//pobieram wskaznik do gracza
@@ -163,8 +165,6 @@ int main()
 							pointer->setGOLD(tempGOLD);
 							pointer->setScore(tempScore);
 							Name.setName(tempPlayerName);
-
-							shop.equipDragon(tempDragonIndex);
 
 
 							currentState = State::PLAYING;
