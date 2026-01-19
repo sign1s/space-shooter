@@ -237,43 +237,43 @@ void Game::CombatUpdate()
 					{
 						player->addEXP(10);
 						player->addScore(50);
-						this->totalGold += 2;
-						player->addGold(2);
+						this->totalGold += 5;
+						player->addGold(5);
 					}
 					else if (enemies[j].getEnemyType() == Enemy::EnemyType::Raven)
 					{
 						player->addEXP(20);
 						player->addScore(100);
-						this->totalGold += 5;
-						player->addGold(5);
+						this->totalGold += 10;
+						player->addGold(10);
 					}
 					else if (enemies[j].getEnemyType() == Enemy::EnemyType::Argus)
 					{
 						player->addEXP(30);
 						player->addScore(150);
-						this->totalGold += 1;
-						player->addGold(1);
+						this->totalGold += 15;
+						player->addGold(15);
 					}
 					else if (enemies[j].getEnemyType() == Enemy::EnemyType::Tank)
 					{
 						player->addEXP(30);
 						player->addScore(150);
-						this->totalGold += 1;
-						player->addGold(1);
+						this->totalGold += 20;
+						player->addGold(20);
 					}
 					else if (enemies[j].getEnemyType() == Enemy::EnemyType::Wraith)
 					{
 						player->addEXP(30);
 						player->addScore(150);
-						this->totalGold += 1;
-						player->addGold(1);
+						this->totalGold += 25;
+						player->addGold(25);
 					}
 
 					//sprawdzam czy gracz osiagnal nowy poziom
 					if (player->getEXP() >= player->getEXPnext())
 					{
 						int temp = player->getEXP() - player->getEXPnext();
-						player->setLevel(player->getLevel()+1);
+						player->LevelUp();
 						player->addEXP(temp);
 						player->addScore(player->getlevelBonus());
 					}

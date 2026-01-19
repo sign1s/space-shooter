@@ -183,8 +183,12 @@ public:
 
 	//update z levelami
 	void setLevel(int value);
+	void setHP(int value);
+	void setEXP(int value);
+	void setGOLD(int value);
 	void setScore(int value);
 	void UpdateStats();
+	void LevelUp();
 
 };
 

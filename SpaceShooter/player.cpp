@@ -185,6 +185,21 @@ void Player::setScore(int value)
 	this->score = value;
 }
 
+void Player::setHP(int value)
+{
+	this->hp = value;
+}
+
+void Player::setEXP(int value)
+{
+	this->exp = value;
+}
+
+void Player::setGOLD(int value)
+{
+	this->gold = value;
+}
+
 void Player::StartDash(const Vector2f& dir)
 {
 	if (!isDashing && dashCooldownTimer <= 0.f)
@@ -206,15 +221,20 @@ void Player::setLevel(int value)
 
 void Player::UpdateStats()
 {
-	this->exp = 0;
-	this->expNext = 20 + (this->level * 20);
-
+	this->expNext = 40 + (this->level * 20);
 	this->damage = this->level;
-
-	this->hpMax = 1 + this->level * 5;
-	this->hp = this->hp+2;
-
+	this->hpMax = this->level * 10;
 	this->levelBonus = 10 * this->level;
+}
+
+void Player::LevelUp()
+{
+	this->level++;
+	this->UpdateStats();
+
+	this->exp = 0;
+	this->hp = this->hpMax;
+
 }
 
 void Player::Update(Vector2u windowBounds)

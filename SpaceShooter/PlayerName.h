@@ -12,9 +12,8 @@ public:
 	void draw(RenderWindow& window);
 	void enterPlayerName(const Event& event);
 	const String& getName() { return playerName; }
+	void setName(String name);
 
-	//Setter
-	//void setPlayerName(int value) { this->level = value; }
 
 	~PlayerName();
 
