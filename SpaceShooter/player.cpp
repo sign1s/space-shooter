@@ -232,8 +232,8 @@ void Player::setLevel(int value)
 void Player::UpdateStats()
 {
 	this->expNext = 40 + (this->level * 20);
-	this->damage = this->level;
-	this->hpMax += level/2 - (level-1)/2;
+	this->damage += 1;
+	this->hpMax = level*10 ;
 	this->levelBonus = 10 * this->level;
 }
 
@@ -244,10 +244,9 @@ void Player::LevelUp()
 
 	this->exp = 0;
 	
-	if (this->hp + 0.1f * hp > this->hpMax)
-		this->hp = this->hpMax;
-	else
-		this->hp += 0.1f * hp;
+		
+			this->hp += 10;
+
 		
 
 }

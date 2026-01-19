@@ -234,7 +234,7 @@ void Game::CombatUpdate()
 				enemies[j].takeDamage(fires[i].getDamage());
 
 
-				if (!player->isPiercingActive() || !bossSpawned )
+				if (!player->isPiercingActive() || bossSpawned )
 				{
 					fires.erase(fires.begin() + i);
 					fireDeleted = true;
@@ -556,7 +556,7 @@ void Game::Update()
 	gameTimer += 1.f / 60.f; 
 
 	// wy³¹czenie respa
-	if (gameTimer >= 20.f ) {
+	if (gameTimer >= 60.f ) {
 		normalEnemiesSpawnEnabled = false;
 	}
 	std::cout << BayleSpawnNumber << std::endl;
@@ -570,7 +570,7 @@ void Game::Update()
 	}
 
 	// spawn bossa
-	if (!bayleSpawned && gameTimer >= 3.f && !normalEnemiesSpawnEnabled && allEnemiesDead) {
+	if (!bayleSpawned && gameTimer >= 60.f && !normalEnemiesSpawnEnabled && allEnemiesDead) {
 		bayleSpawned = true;
 
 		sf::Vector2f spawnPos(window->getSize().x / 2.f, -200.f); // nad ekranem
@@ -607,6 +607,7 @@ void Game::Update()
 			bayleSpawned = false;
 			bossReadyToSpawn = false;
 			normalEnemiesSpawnEnabled = true; // opcjonalnie w³¹czamy resp zwyk³ych wrogów
+			gameTimer = 0;
 		}
 	}
 
@@ -844,7 +845,7 @@ void Game::Reset(const DragonProfile& choosenDragon) {
 void Game::TrySpawnPowerUp(const sf::Vector2f& position)
 {
 	int chance = rand() % 100;
-	if (chance < 100)//szansa na drop 
+	if (chance < 20)//szansa na drop 
 	{
 		int r = rand() % 4;
 		PowerUpType type;

@@ -117,7 +117,7 @@ Enemy::Enemy(Texture* texture, Vector2u windowBounds,
         this->startX = position.x;
         this->amplitude = 10.f;
         this->frequency = 2.f;
-        this->hpMax = (hpMax > 0) ? hpMax : 3;
+        this->hpMax = 3;
         this->damageMax = (damageMax > 0) ? damageMax : 2;
         this->damageMin = (damageMin > 0) ? damageMin : 1;
         break;
@@ -134,12 +134,12 @@ Enemy::Enemy(Texture* texture, Vector2u windowBounds,
     case EnemyType::Tank:
         this->sprite.setScale(Vector2f(0.4f, 0.4f));
         this->speed = 0.5f;
-        this->hpMax = 20;
-        this->damageMax = (damageMax > 0) ? damageMax : 3;
+        this->hpMax = 10;
+        this->damageMax = 5;
         
         break;
     case EnemyType::BossBayle:
-        this->hpMax = 100;
+        this->hpMax = 40;
         this->stopY = windowBounds.y * 0.2f;
 
         this->sprite.setScale(Vector2f(2.f, 2.f));
@@ -158,7 +158,7 @@ Enemy::Enemy(Texture* texture, Vector2u windowBounds,
         this->currentAttack = BossAttackType::None;
         isAttacking = false;
         this->attackTimer = 0.f;
-        this->attackCooldown = 3.f;
+        this->attackCooldown = 1.5f;
         break;
 
     }
@@ -178,7 +178,7 @@ void Enemy::handleVerticalShot(float dt, const sf::Vector2f& playerPos)
     static float shotTimer = 0.f;
     shotTimer += dt;
 
-    float shotInterval = 0.3f; // strza³ co pó³ sekundy
+    float shotInterval = 0.25f; // strza³ co pó³ sekundy
     if (shotTimer >= shotInterval)
     {
         shotTimer = 0.f;
@@ -198,8 +198,8 @@ void Enemy::handleVerticalShot(float dt, const sf::Vector2f& playerPos)
         if (len != 0.f)
             dir /= len; // normalizacja
 
-        // Prêdkoœæ pocisku — ³atwo zmieniæ
-        float projectileSpeed = 6.f;
+        // Prêdkoœæ pocisku
+        float projectileSpeed = 12.f;
 
         // Skala pocisku — ³atwo zmieniæ
         sf::Vector2f projectileScale(0.05f, 0.05f);
@@ -495,7 +495,7 @@ void Enemy::Update(const sf::Vector2f& playerPos, float dt)
             if (!isAttacking && this->attackTimer >= this->attackCooldown)
             {
                 int r = rand() % 3;
-               
+
                 this->currentAttack = static_cast<BossAttackType>(r + 1); // +1 bo None = 0
                 isAttacking = true;
                 this->attackTimer = 0.f;
