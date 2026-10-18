@@ -534,7 +534,7 @@ void Enemy::Draw(RenderTarget& target)
 
    
     
-    target.draw(hitbox);
+    //target.draw(hitbox); //rysowanie hitboxów
 }
 
 

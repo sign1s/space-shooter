@@ -479,7 +479,7 @@ void Player::Draw(RenderTarget& target)
 	rect.setOutlineColor(sf::Color::Green);
 	rect.setOutlineThickness(2.f);
 
-	target.draw(rect);
+	//target.draw(rect); //hitboxy gracza
 
 }
 void Player::addLightning()
